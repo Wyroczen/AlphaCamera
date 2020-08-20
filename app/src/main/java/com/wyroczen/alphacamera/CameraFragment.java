@@ -9,6 +9,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.ImageFormat;
@@ -24,6 +25,7 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
+import android.hardware.camera2.DngCreator;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
@@ -69,6 +71,7 @@ public class CameraFragment extends Fragment
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_CAMERA_PERMISSION = 1;
     private static final String FRAGMENT_DIALOG = "dialog";
+    private int chosenImageFormat = ImageFormat.RAW_SENSOR;
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -232,7 +235,7 @@ public class CameraFragment extends Fragment
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile, chosenImageFormat));
         }
 
     };
@@ -499,10 +502,10 @@ public class CameraFragment extends Fragment
 
                 // For still image captures, we use the largest available size.
                 Size largest = Collections.max(
-                        Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
+                        Arrays.asList(map.getOutputSizes(chosenImageFormat)),
                         new CompareSizesByArea());
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                        ImageFormat.JPEG, /*maxImages*/2);
+                        chosenImageFormat, /*maxImages*/2);
                 mImageReader.setOnImageAvailableListener(
                         mOnImageAvailableListener, mBackgroundHandler);
 
@@ -815,7 +818,9 @@ public class CameraFragment extends Fragment
 
             // Orientation
             int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
+            if(chosenImageFormat == ImageFormat.JPEG){
+                captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
+            }
 
             CameraCaptureSession.CaptureCallback CaptureCallback
                     = new CameraCaptureSession.CaptureCallback() {
@@ -882,12 +887,14 @@ public class CameraFragment extends Fragment
             }
             case R.id.info: {
                 Activity activity = getActivity();
-                if (null != activity) {
-                    new AlertDialog.Builder(activity)
-                            .setMessage(R.string.intro_message)
-                            .setPositiveButton(android.R.string.ok, null)
-                            .show();
-                }
+                //if (null != activity) {
+                //    new AlertDialog.Builder(activity)
+                //            .setMessage(R.string.intro_message)
+                //            .setPositiveButton(android.R.string.ok, null)
+                //            .show();
+                //}
+                startActivity(new Intent(activity, SettingsActivity.class));
+
                 break;
             }
         }
@@ -914,31 +921,38 @@ public class CameraFragment extends Fragment
          */
         private final File mFile;
 
-        ImageSaver(Image image, File file) {
+        private final int mImageFormat;
+
+        ImageSaver(Image image, File file, int format) {
             mImage = image;
             mFile = file;
+            mImageFormat = format;
         }
 
         @Override
         public void run() {
-            ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
-            byte[] bytes = new byte[buffer.remaining()];
-            buffer.get(bytes);
-            FileOutputStream output = null;
-            try {
-                output = new FileOutputStream(mFile);
-                output.write(bytes);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                mImage.close();
-                if (null != output) {
-                    try {
-                        output.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+            if(mImageFormat == ImageFormat.JPEG) {
+                ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
+                byte[] bytes = new byte[buffer.remaining()];
+                buffer.get(bytes);
+                FileOutputStream output = null;
+                try {
+                    output = new FileOutputStream(mFile);
+                    output.write(bytes);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    mImage.close();
+                    if (null != output) {
+                        try {
+                            output.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
+            } else if(mImageFormat == ImageFormat.RAW_SENSOR) {
+                //DngCreator dngCreator = DngCreator()
             }
         }
 
