@@ -20,7 +20,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        //setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_camera);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -35,6 +36,14 @@ public class MainActivity extends AppCompatActivity {
 //                        .setAction("Action", null).show();
 //            }
 //        });
+
+        //Fragment
+        //setContentView(R.layout.activity_camera);
+        if (null == savedInstanceState) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.container, CameraFragment.newInstance())
+                    .commit();
+        }
     }
 
     @Override
