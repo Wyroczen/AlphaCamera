@@ -9,4 +9,26 @@
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+
+    <string name="pref_PhotoSettings">Photo</string>
+    <string name="pref_PhotoSettings_resolution_title">Photo resolution</string>
+    <string name="pref_PhotoSettings_quality_title">JPEG Quality</string>
+    <string name="pref_PhotoSettings_quality_summary">Choose the compression rate.</string>
+    <string name="pref_PhotoSettings_quality_defaultValue">100</string>
+
+    <string-array name="pref_PhotoSettings_quality_entries">
+        <item>100%</item>
+        <item>90%</item>
+        <item>75%</item>
+        <item>50%</item>
+        <item>0%</item>
+    </string-array>
+
+    <string-array name="pref_PhotoSettings_quality_values">
+        <item>100</item>
+        <item>90</item>
+        <item>75</item>
+        <item>50</item>
+        <item>0</item>
+    </string-array>
 </resources>
