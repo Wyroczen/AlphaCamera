@@ -1,5 +1,6 @@
 package com.wyroczen.alphacamera;
 
+import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
@@ -48,6 +49,7 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -71,6 +73,11 @@ public class CameraFragment extends Fragment
     private static final int REQUEST_CAMERA_PERMISSION = 1;
     private static final String FRAGMENT_DIALOG = "dialog";
     private int chosenImageFormat = ImageFormat.RAW_SENSOR;
+
+    public static final String CAMERA_BACK_MAIN = "0";
+    public static final String CAMERA_FRONT = "1";
+    public static final String CAMERA_BACK_WIDE = "21";
+    public static final String CAMERA_BACK_MACRO = "22";
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -150,7 +157,7 @@ public class CameraFragment extends Fragment
     /**
      * ID of the current {@link CameraDevice}.
      */
-    private String mCameraId;
+    private String mCameraId = CAMERA_BACK_MAIN;
 
     /**
      * An {@link AutoFitTextureView} for camera preview.
@@ -418,8 +425,12 @@ public class CameraFragment extends Fragment
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         view.findViewById(R.id.capture_button).setOnClickListener(this);
-        view.findViewById(R.id.info).setOnClickListener(this);
+        view.findViewById(R.id.settings).setOnClickListener(this);
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.view_finder);
+
+        //Set on click listener for camera switch button:
+        AppCompatImageButton cameraSwitchButton = view.findViewById(R.id.camera_switch);
+        cameraSwitchButton.setOnClickListener((v) -> {switchCamera();});
     }
 
     @Override
@@ -472,6 +483,27 @@ public class CameraFragment extends Fragment
         }
     }
 
+    /**Change camera*/
+    private void switchCamera() {
+        if(mCameraId.equals(CAMERA_FRONT)) {
+            mCameraId = CAMERA_BACK_MAIN;
+            closeCamera();
+            onResume();
+        } else if(mCameraId.equals(CAMERA_BACK_MAIN)){
+            mCameraId = CAMERA_BACK_WIDE;
+            closeCamera();
+            onResume();
+        } else if(mCameraId.equals(CAMERA_BACK_WIDE)){
+            mCameraId = CAMERA_BACK_MACRO;
+            closeCamera();
+            onResume();
+        } else if(mCameraId.equals(CAMERA_BACK_MACRO)) {
+            mCameraId = CAMERA_FRONT;
+            closeCamera();
+            onResume();
+        }
+    }
+
     /**
      * Sets up member variables related to camera.
      *
@@ -485,13 +517,13 @@ public class CameraFragment extends Fragment
         try {
             for (String cameraId : manager.getCameraIdList()) {
                 CameraCharacteristics characteristics
-                        = manager.getCameraCharacteristics(cameraId);
+                        = manager.getCameraCharacteristics(mCameraId);
 
                 // We don't use a front facing camera in this sample.
-                Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
-                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
-                    continue;
-                }
+                //Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
+                //if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
+                //    continue;
+                //}
 
                 StreamConfigurationMap map = characteristics.get(
                         CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
@@ -503,8 +535,11 @@ public class CameraFragment extends Fragment
                 Size largest = Collections.max(
                         Arrays.asList(map.getOutputSizes(chosenImageFormat)),
                         new CompareSizesByArea());
+
+                Log.i("AlphaCamera: ","Image reader creator: ID: " + mCameraId + " Width: " + largest.getWidth() + " Height: " + largest.getHeight());
+
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                        chosenImageFormat, /*maxImages*/2);
+                        chosenImageFormat, /*maxImages*/1); //było 2
                 mImageReader.setOnImageAvailableListener(
                         mOnImageAvailableListener, mBackgroundHandler);
 
@@ -574,7 +609,7 @@ public class CameraFragment extends Fragment
                 Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
                 mFlashSupported = available == null ? false : available;
 
-                mCameraId = cameraId;
+                //mCameraId = cameraId;
                 return;
             }
         } catch (CameraAccessException e) {
@@ -884,7 +919,7 @@ public class CameraFragment extends Fragment
                 takePicture();
                 break;
             }
-            case R.id.info: {
+            case R.id.settings: {
                 Activity activity = getActivity();
                 //if (null != activity) {
                 //    new AlertDialog.Builder(activity)
