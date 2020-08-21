@@ -457,20 +457,16 @@ public class CameraFragment extends Fragment
 
         mSettingsUtils = new SettingsUtils();
 
-        Boolean rawEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_ENABLE_RAW_KEY);
-        if(rawEnabled){
-            chosenImageFormat = ImageFormat.RAW_SENSOR;
-        } else {
-            chosenImageFormat = ImageFormat.JPEG;
-        }
-
-        //mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
-        String fileName = new SimpleDateFormat("yyyMMddHHhh").format(new Date()) + "_AlphaCamera";
-        if (chosenImageFormat == ImageFormat.JPEG) {
-            mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".jpg");
-        } else if (chosenImageFormat == ImageFormat.RAW_SENSOR) {
-            mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".dng");
-        }
+//        Boolean rawEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_ENABLE_RAW_KEY);
+//        chosenImageFormat = rawEnabled ? ImageFormat.RAW_SENSOR : ImageFormat.JPEG;
+//
+//        //mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
+//        String fileName = new SimpleDateFormat("yyyMMddHHhh").format(new Date()) + "_AlphaCamera";
+//        if (chosenImageFormat == ImageFormat.JPEG) {
+//            mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".jpg");
+//        } else if (chosenImageFormat == ImageFormat.RAW_SENSOR) {
+//            mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".dng");
+//        }
     }
 
     @Override
@@ -494,6 +490,27 @@ public class CameraFragment extends Fragment
         closeCamera();
         stopBackgroundThread();
         super.onPause();
+    }
+
+    //@Override
+    //public void onStop() {
+    //    super.onStop();
+    //}
+
+    @Override
+    public void onStart() {
+        Boolean rawEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_ENABLE_RAW_KEY);
+        chosenImageFormat = rawEnabled ? ImageFormat.RAW_SENSOR : ImageFormat.JPEG;
+
+        //mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
+        String fileName = new SimpleDateFormat("yyyMMddHHhh").format(new Date()) + "_AlphaCamera";
+        if (chosenImageFormat == ImageFormat.JPEG) {
+            mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".jpg");
+        } else if (chosenImageFormat == ImageFormat.RAW_SENSOR) {
+            mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".dng");
+        }
+        super.onStart();
+
     }
 
     private void requestCameraPermission() {

@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 //        });
 
         //Fragment
-        //setContentView(R.layout.activity_camera);
+        //setContentView(R.layout.activity_camera);In
         if (null == savedInstanceState) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.container, CameraFragment.newInstance())
