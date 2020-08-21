@@ -80,9 +80,10 @@ public class CameraFragment extends Fragment
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_CAMERA_PERMISSION = 1;
     private static final String FRAGMENT_DIALOG = "dialog";
-    private int chosenImageFormat = ImageFormat.RAW_SENSOR;
+    private int chosenImageFormat;
     private CaptureResult mCaptureResult;
     private CameraCharacteristics mCameraCharacteristics;
+    private SettingsUtils mSettingsUtils;
 
     public static final String CAMERA_BACK_MAIN = "0";
     public static final String CAMERA_FRONT = "1";
@@ -453,6 +454,16 @@ public class CameraFragment extends Fragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        mSettingsUtils = new SettingsUtils();
+
+        Boolean rawEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_ENABLE_RAW_KEY);
+        if(rawEnabled){
+            chosenImageFormat = ImageFormat.RAW_SENSOR;
+        } else {
+            chosenImageFormat = ImageFormat.JPEG;
+        }
+
         //mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
         String fileName = new SimpleDateFormat("yyyMMddHHhh").format(new Date()) + "_AlphaCamera";
         if (chosenImageFormat == ImageFormat.JPEG) {
