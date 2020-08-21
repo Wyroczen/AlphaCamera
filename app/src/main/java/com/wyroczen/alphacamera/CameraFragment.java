@@ -418,9 +418,9 @@ public class CameraFragment extends Fragment
 
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
-        view.findViewById(R.id.picture).setOnClickListener(this);
+        view.findViewById(R.id.capture_button).setOnClickListener(this);
         view.findViewById(R.id.info).setOnClickListener(this);
-        mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
+        mTextureView = (AutoFitTextureView) view.findViewById(R.id.view_finder);
     }
 
     @Override
@@ -881,7 +881,7 @@ public class CameraFragment extends Fragment
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.picture: {
+            case R.id.capture_button: {
                 takePicture();
                 break;
             }
