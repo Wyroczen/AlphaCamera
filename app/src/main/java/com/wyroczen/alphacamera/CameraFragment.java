@@ -13,6 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -26,11 +27,13 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
+import android.hardware.camera2.DngCreator;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import androidx.annotation.NonNull;
@@ -52,13 +55,16 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -73,6 +79,8 @@ public class CameraFragment extends Fragment
     private static final int REQUEST_CAMERA_PERMISSION = 1;
     private static final String FRAGMENT_DIALOG = "dialog";
     private int chosenImageFormat = ImageFormat.RAW_SENSOR;
+    private CaptureResult mCaptureResult;
+    private CameraCharacteristics mCameraCharacteristics;
 
     public static final String CAMERA_BACK_MAIN = "0";
     public static final String CAMERA_FRONT = "1";
@@ -241,7 +249,7 @@ public class CameraFragment extends Fragment
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile, chosenImageFormat));
+            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile, chosenImageFormat, mCameraCharacteristics, mCaptureResult));
         }
 
     };
@@ -341,6 +349,7 @@ public class CameraFragment extends Fragment
         public void onCaptureCompleted(@NonNull CameraCaptureSession session,
                                        @NonNull CaptureRequest request,
                                        @NonNull TotalCaptureResult result) {
+            mCaptureResult = result;
             process(result);
         }
 
@@ -436,7 +445,13 @@ public class CameraFragment extends Fragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
+        //mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
+        String fileName = new SimpleDateFormat("yyyMMddHHhh").format(new Date()) + "_AlphaCamera";
+        if(chosenImageFormat == ImageFormat.JPEG){
+            mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".jpg");
+        } else if(chosenImageFormat == ImageFormat.RAW_SENSOR){
+            mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".dng");
+        }
     }
 
     @Override
@@ -518,6 +533,8 @@ public class CameraFragment extends Fragment
             for (String cameraId : manager.getCameraIdList()) {
                 CameraCharacteristics characteristics
                         = manager.getCameraCharacteristics(mCameraId);
+
+                mCameraCharacteristics = characteristics;
 
                 // We don't use a front facing camera in this sample.
                 //Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
@@ -863,6 +880,7 @@ public class CameraFragment extends Fragment
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session,
                                                @NonNull CaptureRequest request,
                                                @NonNull TotalCaptureResult result) {
+                    //mCaptureResult = result;
                     showToast("Saved: " + mFile);
                     Log.d(TAG, mFile.toString());
                     unlockFocus();
@@ -956,11 +974,19 @@ public class CameraFragment extends Fragment
         private final File mFile;
 
         private final int mImageFormat;
+        private final CameraCharacteristics mCameraCharacteristics;
+        private final CaptureResult mCaptureResult;
 
-        ImageSaver(Image image, File file, int format) {
+        ImageSaver(Image image, File file, int format, CameraCharacteristics cameraCharacteristics, CaptureResult captureResult) {
             mImage = image;
             mFile = file;
             mImageFormat = format;
+//            if(cameraCharacteristics == null)
+//                Log.i("AlphaCamera", "cameraCharacteristics null!");
+//            if(captureResult == null)
+//                Log.i("AlphaCamera", "captureResult null!");
+            mCameraCharacteristics = cameraCharacteristics;
+            mCaptureResult = captureResult;
         }
 
         @Override
@@ -986,10 +1012,27 @@ public class CameraFragment extends Fragment
                     }
                 }
             } else if(mImageFormat == ImageFormat.RAW_SENSOR) {
-                //DngCreator dngCreator = DngCreator()
+                DngCreator dngCreator = new DngCreator(mCameraCharacteristics, mCaptureResult);
+                FileOutputStream rawFileOutputStream = null;
+                try{
+                    rawFileOutputStream = new FileOutputStream(mFile);
+                    dngCreator.writeImage(rawFileOutputStream, mImage);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    mImage.close();
+                    if (rawFileOutputStream != null){
+                        try{
+                            rawFileOutputStream.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
             }
         }
-
     }
 
     /**
