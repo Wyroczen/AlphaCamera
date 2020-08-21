@@ -36,6 +36,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
+
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -54,6 +55,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -439,7 +441,13 @@ public class CameraFragment extends Fragment
 
         //Set on click listener for camera switch button:
         AppCompatImageButton cameraSwitchButton = view.findViewById(R.id.camera_switch);
-        cameraSwitchButton.setOnClickListener((v) -> {switchCamera();});
+        cameraSwitchButton.setOnClickListener((v) -> {
+            switchBackCamera();
+        });
+        cameraSwitchButton.setOnLongClickListener((v) -> {
+            switchFrontCamera();
+            return true;
+        });
     }
 
     @Override
@@ -447,9 +455,9 @@ public class CameraFragment extends Fragment
         super.onActivityCreated(savedInstanceState);
         //mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
         String fileName = new SimpleDateFormat("yyyMMddHHhh").format(new Date()) + "_AlphaCamera";
-        if(chosenImageFormat == ImageFormat.JPEG){
+        if (chosenImageFormat == ImageFormat.JPEG) {
             mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".jpg");
-        } else if(chosenImageFormat == ImageFormat.RAW_SENSOR){
+        } else if (chosenImageFormat == ImageFormat.RAW_SENSOR) {
             mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".dng");
         }
     }
@@ -498,26 +506,37 @@ public class CameraFragment extends Fragment
         }
     }
 
-    /**Change camera*/
-    private void switchCamera() {
-        if(mCameraId.equals(CAMERA_FRONT)) {
-            mCameraId = CAMERA_BACK_MAIN;
-            closeCamera();
-            onResume();
-        } else if(mCameraId.equals(CAMERA_BACK_MAIN)){
+    /**
+     * Change camera
+     */
+    private void switchBackCamera() {
+        if (mCameraId.equals(CAMERA_BACK_MAIN)) {
             mCameraId = CAMERA_BACK_WIDE;
             closeCamera();
             onResume();
-        } else if(mCameraId.equals(CAMERA_BACK_WIDE)){
+        } else if (mCameraId.equals(CAMERA_BACK_WIDE)) {
             mCameraId = CAMERA_BACK_MACRO;
             closeCamera();
             onResume();
-        } else if(mCameraId.equals(CAMERA_BACK_MACRO)) {
-            mCameraId = CAMERA_FRONT;
+        } else if (mCameraId.equals(CAMERA_BACK_MACRO)) {
+            mCameraId = CAMERA_BACK_MAIN;
             closeCamera();
             onResume();
         }
     }
+
+    private void switchFrontCamera() {
+        if (mCameraId.equals(CAMERA_BACK_MAIN)) {
+            mCameraId = CAMERA_FRONT;
+            closeCamera();
+            onResume();
+        } else if (mCameraId.equals(CAMERA_FRONT)) {
+            mCameraId = CAMERA_BACK_MAIN;
+            closeCamera();
+            onResume();
+        }
+    }
+
 
     /**
      * Sets up member variables related to camera.
@@ -553,7 +572,7 @@ public class CameraFragment extends Fragment
                         Arrays.asList(map.getOutputSizes(chosenImageFormat)),
                         new CompareSizesByArea());
 
-                Log.i("AlphaCamera: ","Image reader creator: ID: " + mCameraId + " Width: " + largest.getWidth() + " Height: " + largest.getHeight());
+                Log.i("AlphaCamera: ", "Image reader creator: ID: " + mCameraId + " Width: " + largest.getWidth() + " Height: " + largest.getHeight());
 
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
                         chosenImageFormat, /*maxImages*/1); //było 2
@@ -869,7 +888,7 @@ public class CameraFragment extends Fragment
 
             // Orientation
             int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-            if(chosenImageFormat == ImageFormat.JPEG){
+            if (chosenImageFormat == ImageFormat.JPEG) {
                 captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
             }
 
@@ -991,7 +1010,7 @@ public class CameraFragment extends Fragment
 
         @Override
         public void run() {
-            if(mImageFormat == ImageFormat.JPEG) {
+            if (mImageFormat == ImageFormat.JPEG) {
                 ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
                 byte[] bytes = new byte[buffer.remaining()];
                 buffer.get(bytes);
@@ -1011,10 +1030,10 @@ public class CameraFragment extends Fragment
                         }
                     }
                 }
-            } else if(mImageFormat == ImageFormat.RAW_SENSOR) {
+            } else if (mImageFormat == ImageFormat.RAW_SENSOR) {
                 DngCreator dngCreator = new DngCreator(mCameraCharacteristics, mCaptureResult);
                 FileOutputStream rawFileOutputStream = null;
-                try{
+                try {
                     rawFileOutputStream = new FileOutputStream(mFile);
                     dngCreator.writeImage(rawFileOutputStream, mImage);
                 } catch (FileNotFoundException e) {
@@ -1023,8 +1042,8 @@ public class CameraFragment extends Fragment
                     e.printStackTrace();
                 } finally {
                     mImage.close();
-                    if (rawFileOutputStream != null){
-                        try{
+                    if (rawFileOutputStream != null) {
+                        try {
                             rawFileOutputStream.close();
                         } catch (IOException e) {
                             e.printStackTrace();
