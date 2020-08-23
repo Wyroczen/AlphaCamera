@@ -1,5 +1,6 @@
 package com.wyroczen.alphacamera;
 
+import android.content.Intent;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -41,6 +42,9 @@ public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureL
         if(deltaXAbs >= MIN_SWIPE_DISTANCE_X && deltaXAbs <= MAX_SWIPE_DISTANCE_X) {
             if(deltaX > 0){
                 Log.i("AlphaCamera", "Swipe to left");
+                //Start video activity
+                Intent i = new Intent(activityCamera, CameraVideoActivity.class);
+                activityCamera.startActivity(i);
             } else {
                 Log.i("AlphaCamera", "Swipe to right");
             }
