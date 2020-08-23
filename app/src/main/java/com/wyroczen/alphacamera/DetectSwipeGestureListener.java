@@ -47,6 +47,8 @@ public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureL
                 activityCamera.startActivity(i);
             } else {
                 Log.i("AlphaCamera", "Swipe to right");
+                Intent i = new Intent(activityCameraVideo, CameraActivity.class);
+                activityCameraVideo.startActivity(i);
             }
         }
 

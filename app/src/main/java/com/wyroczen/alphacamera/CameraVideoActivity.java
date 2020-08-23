@@ -7,15 +7,25 @@ import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GestureDetectorCompat;
 
+import android.view.MotionEvent;
 import android.view.View;
 
 public class CameraVideoActivity extends AppCompatActivity {
+
+    private GestureDetectorCompat gestureDetectorCompat = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_video);
+
+        DetectSwipeGestureListener gestureListener = new DetectSwipeGestureListener();
+        gestureListener.setActivityCameraVideo(this);
+        gestureDetectorCompat = new GestureDetectorCompat(this, gestureListener);
+
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -27,5 +37,11 @@ public class CameraVideoActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event){
+        gestureDetectorCompat.onTouchEvent(event);
+        return true;
     }
 }
