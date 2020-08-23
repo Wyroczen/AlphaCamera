@@ -8,21 +8,30 @@ import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GestureDetectorCompat;
 
 import android.preference.PreferenceManager;
+import android.view.MotionEvent;
 import android.view.View;
 
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 
-public class MainActivity extends AppCompatActivity {
+public class CameraActivity extends AppCompatActivity {
+
+    private GestureDetectorCompat gestureDetectorCompat = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
         setContentView(R.layout.activity_camera);
+
+        DetectSwipeGestureListener gestureListener = new DetectSwipeGestureListener();
+        gestureListener.setActivityCamera(this);
+        gestureDetectorCompat = new GestureDetectorCompat(this, gestureListener);
+
         //Toolbar toolbar = findViewById(R.id.toolbar);
         //setSupportActionBar(toolbar);
 
@@ -45,6 +54,12 @@ public class MainActivity extends AppCompatActivity {
                     .replace(R.id.container, CameraFragment.newInstance())
                     .commit();
         }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event){
+        gestureDetectorCompat.onTouchEvent(event);
+        return true;
     }
 
     @Override

@@ -16,6 +16,14 @@
     <string name="pref_PhotoSettings_quality_summary">Choose the compression rate.</string>
     <string name="pref_PhotoSettings_quality_defaultValue">100</string>
 
+    <string name="picture">Picture</string>
+
+    <string name="description_settings">Settings</string>
+
+    <string name="request_permission">This sample needs camera permission.</string>
+    <string name="camera_error">This device doesn\'t support Camera2 API.</string>
+    <string name="intro_message">Intro</string>
+    <string name="title_activity_camera_video">CameraVideoActivity</string>
     <string-array name="pref_PhotoSettings_quality_entries">
         <item>100%</item>
         <item>90%</item>
@@ -23,7 +31,6 @@
         <item>50%</item>
         <item>0%</item>
     </string-array>
-
     <string-array name="pref_PhotoSettings_quality_values">
         <item>100</item>
         <item>90</item>
@@ -31,10 +38,4 @@
         <item>50</item>
         <item>0</item>
     </string-array>
-
-    <string name="picture">Picture</string>
-    <string name="description_settings">Settings</string>
-    <string name="request_permission">This sample needs camera permission.</string>
-    <string name="camera_error">This device doesn\'t support Camera2 API.</string>
-    <string name="intro_message">Intro</string>
 </resources>
