@@ -15,45 +15,49 @@ public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureL
     private CameraActivity activityCamera = null;
     private CameraVideoActivity activityCameraVideo = null;
 
-    public void setActivityCamera(CameraActivity cameraActivity){
+    public void setActivityCamera(CameraActivity cameraActivity) {
         this.activityCamera = cameraActivity;
     }
 
-    public void setActivityCameraVideo(CameraVideoActivity cameraVideoActivity){
+    public void setActivityCameraVideo(CameraVideoActivity cameraVideoActivity) {
         this.activityCameraVideo = cameraVideoActivity;
     }
 
-    public CameraActivity getActivityCamera(){
+    public CameraActivity getActivityCamera() {
         return this.activityCamera;
     }
 
-    public CameraVideoActivity getActivityCameraVideo(){
+    public CameraVideoActivity getActivityCameraVideo() {
         return this.activityCameraVideo;
     }
 
     @Override
-    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY){
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         float deltaX = e1.getX() - e2.getX();
         float deltaY = e1.getY() - e2.getY();
 
         float deltaXAbs = Math.abs(deltaX);
         float deltaYAbs = Math.abs(deltaY);
 
-        if(deltaXAbs >= MIN_SWIPE_DISTANCE_X && deltaXAbs <= MAX_SWIPE_DISTANCE_X) {
-            if(deltaX > 0){
+        if (deltaXAbs >= MIN_SWIPE_DISTANCE_X && deltaXAbs <= MAX_SWIPE_DISTANCE_X) {
+            if (deltaX > 0) {
                 Log.i("AlphaCamera", "Swipe to left");
                 //Start video activity
-                Intent i = new Intent(activityCamera, CameraVideoActivity.class);
-                activityCamera.startActivity(i);
+                if (activityCamera != null) {
+                    Intent i = new Intent(activityCamera, CameraVideoActivity.class);
+                    activityCamera.startActivity(i);
+                }
             } else {
                 Log.i("AlphaCamera", "Swipe to right");
-                Intent i = new Intent(activityCameraVideo, CameraActivity.class);
-                activityCameraVideo.startActivity(i);
+                if (activityCameraVideo != null) {
+                    Intent i = new Intent(activityCameraVideo, CameraActivity.class);
+                    activityCameraVideo.startActivity(i);
+                }
             }
         }
 
-        if(deltaYAbs >= MIN_SWIPE_DISTANCE_Y && deltaYAbs <= MAX_SWIPE_DISTANCE_Y) {
-            if(deltaY > 0){
+        if (deltaYAbs >= MIN_SWIPE_DISTANCE_Y && deltaYAbs <= MAX_SWIPE_DISTANCE_Y) {
+            if (deltaY > 0) {
                 Log.i("AlphaCamera", "Swipe to top");
             } else {
                 Log.i("AlphaCamera", "Swipe to down");
@@ -64,13 +68,13 @@ public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureL
     }
 
     @Override
-    public boolean onSingleTapConfirmed(MotionEvent e){
+    public boolean onSingleTapConfirmed(MotionEvent e) {
         Log.i("AlphaCamera", "Single tap");
         return true;
     }
 
     @Override
-    public boolean onDoubleTap(MotionEvent e){
+    public boolean onDoubleTap(MotionEvent e) {
         Log.i("AlphaCamera", "Double tap");
         return true;
     }

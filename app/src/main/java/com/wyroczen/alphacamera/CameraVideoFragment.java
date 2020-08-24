@@ -1,5 +1,6 @@
 package com.wyroczen.alphacamera;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -26,7 +27,6 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,12 +37,29 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.StringRes;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 public class CameraVideoFragment extends Fragment
         implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback  {
+
+    public static final int REQUEST_VIDEO_PERMISSIONS = 1;
+    private static final String FRAGMENT_DIALOG = "dialog";
+
+    public static final String[] VIDEO_PERMISSIONS = {
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+    };
+
+    public boolean shouldShowRequestPermissionRationale(String[] permissions) {
+        for (String permission : permissions) {
+            if (shouldShowRequestPermissionRationale(permission)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     public void onClick(View view) {
@@ -65,12 +82,6 @@ public class CameraVideoFragment extends Fragment
     private boolean upsideDown;
     private int mCameraFacing = CameraCharacteristics.LENS_FACING_BACK;
     private File mCurrentFile;
-    //private Camera2Listener mCamera2Listener;
-    private String mRationaleMessage;
-
-    //public abstract int getTextureResource();
-
-    //public abstract File getVideoFile(Context context);
 
     public static CameraVideoFragment newInstance() {
         return new CameraVideoFragment();
@@ -98,24 +109,8 @@ public class CameraVideoFragment extends Fragment
         }
     }
 
-    public int getCameraFacing() {
-        return mCameraFacing;
-    }
-
-    public void setCameraFacing(int mCameraFacing) {
-        this.mCameraFacing = mCameraFacing;
-    }
-
     public boolean isRecording() {
         return isRecording;
-    }
-
-    public void setRationaleMessage(String message) {
-        mRationaleMessage = message;
-    }
-
-    public void setRationaleMessage(@StringRes int messageResource) {
-        mRationaleMessage = getString(messageResource);
     }
 
     public void startRecordingVideo() {
@@ -161,8 +156,6 @@ public class CameraVideoFragment extends Fragment
         super.onViewCreated(view, savedInstanceState);
         view.findViewById(R.id.capture_button).setOnClickListener(this);
         mCameraLayout = (AutoFitTextureView) view.findViewById(R.id.view_finder);
-        Log.i("AlphaCamera", "onViewCreated Video");
-        //mCamera2Listener = this;
     }
 
     @Override
@@ -205,23 +198,22 @@ public class CameraVideoFragment extends Fragment
             mBackgroundHandler = null;
         } catch (InterruptedException e) {
             e.printStackTrace();
-            //mCamera2Listener.onInterruptedException(e);
         }
     }
 
-    protected void requestVideoPermissions() {
-        //if (CameraUtil.shouldShowRequestPermissionRationale(this, Camera2PermissionDialog.VIDEO_PERMISSIONS)) {
-            //Camera2PermissionDialog.newInstance(this, mRationaleMessage).show(getChildFragmentManager(), Camera2PermissionDialog.FRAGMENT_DIALOG);
-        //} else {
-            //FragmentCompat.requestPermissions(this, Camera2PermissionDialog.VIDEO_PERMISSIONS, Camera2PermissionDialog.REQUEST_VIDEO_PERMISSIONS);
-        //}
+    protected void requestVideoPermission() {
+        if (shouldShowRequestPermissionRationale(CameraVideoFragment.VIDEO_PERMISSIONS)) {
+            new CameraFragment.ConfirmationDialog().show(getChildFragmentManager(), FRAGMENT_DIALOG);
+        } else {
+            requestPermissions(VIDEO_PERMISSIONS, REQUEST_VIDEO_PERMISSIONS);
+        }
     }
 
     private void openCamera(int width, int height) {
-        //if (!CameraUtil.hasPermissionsGranted(getActivity(), Camera2PermissionDialog.VIDEO_PERMISSIONS)) {
-        //    requestVideoPermissions();
-        //    return;
-        //}
+        if (!CameraUtil.hasPermissionsGranted(getActivity(), VIDEO_PERMISSIONS)) {
+            requestVideoPermission();
+            return;
+        }
 
         final Activity activity = getActivity();
         if (activity == null || activity.isFinishing()) {
@@ -269,16 +261,13 @@ public class CameraVideoFragment extends Fragment
 
         } catch (CameraAccessException cae) {
             cae.printStackTrace();
-            //mCamera2Listener.onCameraException(cae);
         } catch (NullPointerException npe) {
             npe.printStackTrace();
-            //mCamera2Listener.onNullPointerException(npe);
         } catch (InterruptedException ie) {
             ie.printStackTrace();
-            //mCamera2Listener.onInterruptedException(ie);
             throw new RuntimeException("Interrupted while trying to lock camera opening.");
         } catch (SecurityException se) {
-            requestVideoPermissions();
+            requestVideoPermission();
         }
     }
 
@@ -316,10 +305,8 @@ public class CameraVideoFragment extends Fragment
             mCameraDevice.createCaptureSession(getSurfaces(), mSessionCallback, mBackgroundHandler);
         } catch (CameraAccessException cae) {
             cae.printStackTrace();
-            //mCamera2Listener.onCameraException(cae);
         } catch (IOException ioe) {
             ioe.printStackTrace();
-            //mCamera2Listener.onIOException(ioe);
         }
     }
 
@@ -340,7 +327,6 @@ public class CameraVideoFragment extends Fragment
             mPreviewBuilder.addTarget(recorderSurface);
         } catch (CameraAccessException cae) {
             cae.printStackTrace();
-            //mCamera2Listener.onCameraException(cae);
         }
 
         return surfaces;
@@ -357,7 +343,6 @@ public class CameraVideoFragment extends Fragment
             mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, mBackgroundHandler);
         } catch (CameraAccessException cae) {
             cae.printStackTrace();
-            //mCamera2Listener.onCameraException(cae);
         }
     }
 
@@ -458,7 +443,6 @@ public class CameraVideoFragment extends Fragment
         public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
             Activity activity = getActivity();
             if (null != activity) {
-                //mCamera2Listener.onConfigurationFailed();
                 activity.finish();
             }
         }
@@ -498,24 +482,6 @@ class CameraUtil {
         return choices[choices.length - 1];
     }
 
-    public static boolean shouldShowRequestPermissionRationale(Fragment context, String[] permissions) {
-        for (String permission : permissions) {
-            //if (FragmentCompat.shouldShowRequestPermissionRationale(context, permission)) {
-            //    return true;
-            //}
-        }
-        return false;
-    }
-
-    public static boolean hasPermissionsGranted(Activity context, String[]permissions) {
-        for (String permission : permissions) {
-            if (ActivityCompat.checkSelfPermission(context, permission)
-                    != PackageManager.PERMISSION_GRANTED) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     public static int getOrientation(int rotation, boolean upsideDown) {
         if (upsideDown) {
@@ -535,5 +501,15 @@ class CameraUtil {
         }
 
         return 0;
+    }
+
+    public static boolean hasPermissionsGranted(Activity context, String[]permissions) {
+        for (String permission : permissions) {
+            if (ActivityCompat.checkSelfPermission(context, permission)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
     }
 }
