@@ -25,18 +25,11 @@ public class CameraVideoActivity extends AppCompatActivity {
         gestureListener.setActivityCameraVideo(this);
         gestureDetectorCompat = new GestureDetectorCompat(this, gestureListener);
 
-
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        if (null == savedInstanceState) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.container, CameraVideoFragment.newInstance())
+                    .commit();
+        }
     }
 
     @Override
