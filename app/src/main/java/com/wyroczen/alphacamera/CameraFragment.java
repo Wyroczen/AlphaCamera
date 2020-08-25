@@ -96,6 +96,7 @@ public class CameraFragment extends Fragment
     public Boolean SEMI_MANUAL_MODE_EXPOSURE = false;
     public Boolean FULL_MANUAL_MODE = false;
     public Integer MANUAL_ISO_VALUE = 100;
+    public Long MANUAL_EXP_VALUE = 100000L;
 
     private TextView isoValueTextView;
     private TextView exposureValueTextView;
@@ -467,12 +468,14 @@ public class CameraFragment extends Fragment
         //Set change listener for iso and exposure seekbars
         SeekBar isoSeekBar = view.findViewById(R.id.iso_seekBar);
         isoSeekBar.setOnSeekBarChangeListener(isoSeekbarChangeListener);
+        isoSeekBar.incrementProgressBy(100);
         isoSeekBar.setProgress(0);
-        //isoSeekBar.incrementProgressBy(100);
         isoSeekBar.setMax(3200);
         SeekBar exposureSeekBar = view.findViewById(R.id.exposure_seekBar);
         exposureSeekBar.setOnSeekBarChangeListener(exposureSeekbarChangeListener);
+        exposureSeekBar.incrementProgressBy(1);
         exposureSeekBar.setProgress(0);
+        exposureSeekBar.setMax(320000);
 
     }
 
@@ -482,14 +485,14 @@ public class CameraFragment extends Fragment
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             // updated continuously as the user slides the thumb
             //Update ISO
-            Log.i("PROGRESS", Integer.valueOf(progress).toString());
+            //Log.i("AlphaCamera","ISO Progress: " + progress);
             if (progress == 0 && !SEMI_MANUAL_MODE_EXPOSURE) {
                 SEMI_MANUAL_MODE = false;
                 SEMI_MANUAL_MODE_ISO = false;
                 isoValueTextView.setText("ISO: AUTO");
-            } else if(progress == 0){
+            } else if (progress == 0) {
                 SEMI_MANUAL_MODE = true;
-                SEMI_MANUAL_MODE_ISO = true;
+                SEMI_MANUAL_MODE_ISO = false;
                 isoValueTextView.setText("ISO: AUTO EM");
             } else {
                 SEMI_MANUAL_MODE = true;
@@ -517,20 +520,24 @@ public class CameraFragment extends Fragment
 
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            //Log.i("AlphaCamera","EXPOSURE Progress: " + progress);
             // updated continuously as the user slides the thumb
             //Update Exposure
             if (progress == 0 && !SEMI_MANUAL_MODE_ISO) {
                 SEMI_MANUAL_MODE = false;
                 SEMI_MANUAL_MODE_EXPOSURE = false;
-                exposureValueTextView.setText("EXPOSURE: AUTO");
-            } else if(progress == 0) {
+                exposureValueTextView.setText("EXP: AUTO");
+            } else if (progress == 0) {
                 SEMI_MANUAL_MODE = true;
-                SEMI_MANUAL_MODE_EXPOSURE = true;
-                exposureValueTextView.setText("EXPOSURE: AUTO IM");
+                SEMI_MANUAL_MODE_EXPOSURE = false;
+                exposureValueTextView.setText("EXP: AUTO IM");
             } else {
                 SEMI_MANUAL_MODE = true;
                 SEMI_MANUAL_MODE_EXPOSURE = true;
-                exposureValueTextView.setText("EXPOSURE: MANUAL");
+                Long expTime = Long.valueOf(String.valueOf(progress));
+                expTime *= 100000;
+                MANUAL_EXP_VALUE = Long.valueOf(expTime);
+                exposureValueTextView.setText("EXP: " + expTime );
             }
 
         }
@@ -1005,7 +1012,7 @@ public class CameraFragment extends Fragment
             if (SEMI_MANUAL_MODE) {
                 Log.i("AlphaCamera", "SEMI_MANUAL_MODE enabled" + " Max frame dur: " + mCameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_MAX_FRAME_DURATION).toString()
                         + " Max analog sensitivity: " + mCameraCharacteristics.get(CameraCharacteristics.SENSOR_MAX_ANALOG_SENSITIVITY)
-                        + " MANUAL ISO VALUE: " + MANUAL_ISO_VALUE.toString());
+                        + " MANUAL ISO VALUE: " + MANUAL_ISO_VALUE.toString() + " Manual EXP VALUE: " + MANUAL_EXP_VALUE.toString());
                 captureBuilder =
                         mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_MANUAL);
                 captureBuilder.addTarget(mImageReader.getSurface());
@@ -1016,7 +1023,7 @@ public class CameraFragment extends Fragment
                 //setAutoFlash(captureBuilder);
 
                 captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_MODE_OFF);
-                captureBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, 500000000L);
+                captureBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, MANUAL_EXP_VALUE); //1/2S 500000000L
                 captureBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, MANUAL_ISO_VALUE);
                 //captureBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, Long.valueOf(32));
                 //captureBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, 100);
