@@ -115,14 +115,6 @@
         android:src="@drawable/ic_action_info" />
 
     <SeekBar
-        android:id="@+id/iso_seekBar"
-        android:layout_width="152dp"
-        android:layout_height="41dp"
-        app:layout_constraintBottom_toTopOf="@+id/capture_button"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="@+id/camera_switch" />
-
-    <SeekBar
         android:id="@+id/exposure_seekBar"
         android:layout_width="152dp"
         android:layout_height="40dp"
@@ -131,5 +123,38 @@
         app:layout_constraintHorizontal_bias="0.454"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="@+id/camera_switch" />
+
+    <SeekBar
+        android:id="@+id/iso_seekBar"
+        android:layout_width="152dp"
+        android:layout_height="41dp"
+        app:layout_constraintBottom_toTopOf="@+id/capture_button"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="@+id/camera_switch" />
+
+
+    <TextView
+        android:id="@+id/exposure_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        tools:layout_editor_absoluteX="313dp"
+        tools:layout_editor_absoluteY="444dp"
+        app:layout_constraintBottom_toBottomOf="@+id/exposure_seekBar"
+        app:layout_constraintHorizontal_bias="0.454"
+        app:layout_constraintLeft_toRightOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/settings"/>
+
+    <TextView
+        android:id="@+id/iso_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        tools:layout_editor_absoluteX="313dp"
+        tools:layout_editor_absoluteY="444dp"
+        app:layout_constraintBottom_toBottomOf="@+id/iso_seekBar"
+        app:layout_constraintHorizontal_bias="0.454"
+        app:layout_constraintLeft_toRightOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/settings"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
