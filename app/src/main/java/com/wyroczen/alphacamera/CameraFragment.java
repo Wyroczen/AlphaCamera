@@ -54,6 +54,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import java.io.File;
@@ -89,6 +90,8 @@ public class CameraFragment extends Fragment
     public static final String CAMERA_FRONT = "1";
     public static final String CAMERA_BACK_WIDE = "21";
     public static final String CAMERA_BACK_MACRO = "22";
+    public Boolean SEMI_MANUAL_MODE = false;
+    public Boolean FULL_MANUAL_MODE = false;
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -449,7 +452,63 @@ public class CameraFragment extends Fragment
             switchFrontCamera();
             return true;
         });
+
+        //Set change listener for iso and exposure seekbars
+        SeekBar isoSeekBar = view.findViewById(R.id.iso_seekBar);
+        isoSeekBar.setOnSeekBarChangeListener(isoSeekbarChangeListener);
+        SeekBar exposureSeekBar = view.findViewById(R.id.exposure_seekBar);
+        exposureSeekBar.setOnSeekBarChangeListener(exposureSeekbarChangeListener);
     }
+
+    SeekBar.OnSeekBarChangeListener isoSeekbarChangeListener = new SeekBar.OnSeekBarChangeListener() {
+
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            // updated continuously as the user slides the thumb
+            //Update ISO
+            if (progress == 0) {
+                SEMI_MANUAL_MODE = false;
+            } else {
+                SEMI_MANUAL_MODE = true;
+            }
+
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+            // called when the user first touches the SeekBar
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            // called after the user finishes moving the SeekBar
+        }
+    };
+
+    SeekBar.OnSeekBarChangeListener exposureSeekbarChangeListener = new SeekBar.OnSeekBarChangeListener() {
+
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            // updated continuously as the user slides the thumb
+            //Update Exposure
+            if (progress == 0) {
+                SEMI_MANUAL_MODE = false;
+            } else {
+                SEMI_MANUAL_MODE = true;
+            }
+
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+            // called when the user first touches the SeekBar
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            // called after the user finishes moving the SeekBar
+        }
+    };
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -795,6 +854,7 @@ public class CameraFragment extends Fragment
                                 // Auto focus should be continuous for camera preview.
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                                         CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+
                                 // Flash is automatically enabled when necessary.
                                 setAutoFlash(mPreviewRequestBuilder);
 
@@ -904,15 +964,38 @@ public class CameraFragment extends Fragment
             if (null == activity || null == mCameraDevice) {
                 return;
             }
-            // This is the CaptureRequest.Builder that we use to take a picture.
-            final CaptureRequest.Builder captureBuilder =
-                    mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
-            captureBuilder.addTarget(mImageReader.getSurface());
 
-            // Use the same AE and AF modes as the preview.
-            captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            setAutoFlash(captureBuilder);
+            final CaptureRequest.Builder captureBuilder;
+            if (SEMI_MANUAL_MODE) {
+                Log.i("AlphaCamera", "SEMI_MANUAL_MODE enabled" + " Max frame dur: " + mCameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_MAX_FRAME_DURATION).toString()
+                        + " Max analog sensitivity: " + mCameraCharacteristics.get(CameraCharacteristics.SENSOR_MAX_ANALOG_SENSITIVITY));
+                captureBuilder =
+                        mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_MANUAL);
+                captureBuilder.addTarget(mImageReader.getSurface());
+
+                // Use the same AE and AF modes as the preview.
+                //captureBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+                //        CaptureRequest.CONTROL_AE_MODE_OFF);
+                //setAutoFlash(captureBuilder);
+
+                captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_MODE_OFF);
+                captureBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, 500000000L);
+                captureBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, 1000);
+                //captureBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, Long.valueOf(32));
+                //captureBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, 100);
+                //captureBuilder.set(CaptureRequest.SENSOR_FRAME_DURATION, mCameraCharacteristics.get(SENSOR_INFO_MAX_FRAME_DURATION));
+            } else {
+                Log.i("AlphaCamera", "AUTO_DEFAULT_MODE enabled");
+                // This is the CaptureRequest.Builder that we use to take a picture.
+                captureBuilder =
+                        mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+                captureBuilder.addTarget(mImageReader.getSurface());
+
+                // Use the same AE and AF modes as the preview.
+                captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                setAutoFlash(captureBuilder);
+            }
 
             // Orientation
             int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
