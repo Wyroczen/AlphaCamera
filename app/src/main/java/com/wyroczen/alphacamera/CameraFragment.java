@@ -45,6 +45,7 @@ import androidx.core.content.ContextCompat;
 //import android.support.v4.app.DialogFragment;
 //import android.support.v4.app.Fragment;
 //import android.support.v4.content.ContextCompat;
+import android.provider.Settings;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -83,6 +84,7 @@ public class CameraFragment extends Fragment
     private static final int REQUEST_CAMERA_PERMISSION = 1;
     private static final String FRAGMENT_DIALOG = "dialog";
     private int chosenImageFormat;
+    private Size choosenBackResolution;
     private CaptureResult mCaptureResult;
     private CameraCharacteristics mCameraCharacteristics;
     private SettingsUtils mSettingsUtils;
@@ -537,7 +539,7 @@ public class CameraFragment extends Fragment
                 Long expTime = Long.valueOf(String.valueOf(progress));
                 expTime *= 100000;
                 MANUAL_EXP_VALUE = Long.valueOf(expTime);
-                exposureValueTextView.setText("EXP: " + expTime );
+                exposureValueTextView.setText("EXP: " + expTime);
             }
 
         }
@@ -603,6 +605,7 @@ public class CameraFragment extends Fragment
     public void onStart() {
         Boolean rawEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_ENABLE_RAW_KEY);
         chosenImageFormat = rawEnabled ? ImageFormat.RAW_SENSOR : ImageFormat.JPEG;
+        choosenBackResolution = mSettingsUtils.readSizeSettings(getContext(), SettingsUtils.PREF_RESOLUTION_BACK_KEY);
 
         //mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
         String fileName = new SimpleDateFormat("yyyMMddHHhh").format(new Date()) + "_AlphaCamera";
@@ -702,12 +705,20 @@ public class CameraFragment extends Fragment
                         Arrays.asList(map.getOutputSizes(chosenImageFormat)),
                         new CompareSizesByArea());
 
-                Log.i("AlphaCamera: ", "Image reader creator: ID: " + mCameraId + " Width: " + largest.getWidth() + " Height: " + largest.getHeight());
+                Log.i("AlphaCamera: ", "Image reader creator: ID: " + mCameraId + " Width: " + choosenBackResolution.getWidth() + " Height: " + choosenBackResolution.getHeight());
 
-                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                        chosenImageFormat, /*maxImages*/1); //było 2
+
+                if (chosenImageFormat == ImageFormat.JPEG) {
+                    mImageReader = ImageReader.newInstance(choosenBackResolution.getWidth(), choosenBackResolution.getHeight(),
+                            chosenImageFormat, /*maxImages*/1); //było 2
+                } else {
+                    mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
+                            chosenImageFormat, /*maxImages*/1); //było 2
+                }
+
                 mImageReader.setOnImageAvailableListener(
                         mOnImageAvailableListener, mBackgroundHandler);
+
 
                 // Find out if we need to swap dimension to get the preview size relative to sensor
                 // coordinate.

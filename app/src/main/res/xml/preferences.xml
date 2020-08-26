@@ -3,6 +3,13 @@
 
     <PreferenceCategory android:title="@string/pref_PhotoSettings">
         <ListPreference
+            android:key="pref_resolution_backLens"
+            android:title="Photo Resolution Back"
+            android:summary="Choose resolution for JPEG capture"
+            android:defaultValue="4640x3472"
+            android:entries="@array/pref_backRes_entries"
+            android:entryValues="@array/pref_backRes_values"/>
+        <ListPreference
             android:key="pref_jpg_quality_key"
             android:title="@string/pref_PhotoSettings_quality_title"
             android:summary="@string/pref_PhotoSettings_quality_summary"
