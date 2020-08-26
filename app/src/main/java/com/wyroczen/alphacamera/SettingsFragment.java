@@ -58,10 +58,20 @@ public class SettingsFragment extends PreferenceFragment {
     }
 
     public void setResolutionListPreferenceData(ListPreference resulutionBackListPreference) throws CameraAccessException {
+
+
+
         Activity activity = getActivity();
+
+        Bundle extras = activity.getIntent().getExtras();
+        String mCameraId = "0";
+        if (extras != null) {
+            mCameraId = extras.getString("mCameraId");
+        }
+
         CameraManager manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
         CameraCharacteristics characteristics
-                = manager.getCameraCharacteristics("0");
+                = manager.getCameraCharacteristics(mCameraId);
         StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
         Size[] outputSizes = map.getOutputSizes(ImageFormat.JPEG);

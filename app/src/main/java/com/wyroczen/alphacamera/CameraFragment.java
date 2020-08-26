@@ -706,7 +706,9 @@ public class CameraFragment extends Fragment
                         new CompareSizesByArea());
 
                 Log.i("AlphaCamera: ", "Image reader creator: ID: " + mCameraId + " Width: " + choosenBackResolution.getWidth() + " Height: " + choosenBackResolution.getHeight());
-
+                if(choosenBackResolution.getHeight() == 0 || choosenBackResolution.getWidth() == 0){
+                    choosenBackResolution = largest;
+                }
 
                 if (chosenImageFormat == ImageFormat.JPEG) {
                     mImageReader = ImageReader.newInstance(choosenBackResolution.getWidth(), choosenBackResolution.getHeight(),
@@ -1130,7 +1132,9 @@ public class CameraFragment extends Fragment
                 //            .setPositiveButton(android.R.string.ok, null)
                 //            .show();
                 //}
-                startActivity(new Intent(activity, SettingsActivity.class));
+                Intent intent = new Intent(activity, SettingsActivity.class);
+                intent.putExtra("mCameraId",mCameraId);
+                startActivity(intent);
 
                 break;
             }
