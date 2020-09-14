@@ -75,16 +75,16 @@ public class SettingsFragment extends PreferenceFragment {
         StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
         Size[] outputSizes = map.getOutputSizes(ImageFormat.JPEG);
-        Size[] fullOutputSizes = new Size[outputSizes.length + 1];
-        for(int i = 0; i < outputSizes.length;i++) {
-            fullOutputSizes[i] = outputSizes[i];
-        }
-        fullOutputSizes[outputSizes.length] = new Size(9248, 6936);
-        CharSequence[] entries = new CharSequence[fullOutputSizes.length];
-        CharSequence[] entryValues = new CharSequence[fullOutputSizes.length];
+        //Size[] fullOutputSizes = new Size[outputSizes.length + 1];
+        //for(int i = 0; i < outputSizes.length;i++) {
+        //    fullOutputSizes[i] = outputSizes[i];
+        //}
+        //fullOutputSizes[outputSizes.length] = new Size(9248, 6936);
+        CharSequence[] entries = new CharSequence[outputSizes.length];
+        CharSequence[] entryValues = new CharSequence[outputSizes.length];
 
         int i = 0;
-        for(Size size : fullOutputSizes){
+        for(Size size : outputSizes){
             Log.i("AlphaCamera", "Size: " + size.toString());
             entries[i] = size.toString();
             entryValues[i] = size.toString();

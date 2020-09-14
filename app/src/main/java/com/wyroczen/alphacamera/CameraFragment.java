@@ -18,8 +18,10 @@ import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
+import android.hardware.HardwareBuffer;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -63,6 +65,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.wyroczen.alphacamera.reflection.ReflectionHelper;
+import com.wyroczen.alphacamera.stock.StockHelper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -97,6 +100,7 @@ public class CameraFragment extends Fragment
     private CaptureResult mCaptureResult;
     private CameraCharacteristics mCameraCharacteristics;
     private SettingsUtils mSettingsUtils;
+    //private CaptureResult mPreviewCaptureResult;
 
     private ReflectionHelper reflectionHelper = null;
 
@@ -369,6 +373,9 @@ public class CameraFragment extends Fragment
         public void onCaptureProgressed(@NonNull CameraCaptureSession session,
                                         @NonNull CaptureRequest request,
                                         @NonNull CaptureResult partialResult) {
+            //Preview capture result TODO
+            //mPreviewCaptureResult = partialResult;
+            //
             process(partialResult);
         }
 
@@ -933,53 +940,13 @@ public class CameraFragment extends Fragment
             mPreviewRequestBuilder.addTarget(surface);
 
             // Here, we create a CameraCaptureSession for camera preview.
-
-//            //Output configuration list and custom capture session
-//            OutputConfiguration outputConfiguration = new OutputConfiguration(mImageReader.getSurface());
-//            List<OutputConfiguration> outputConfigurationsList = new ArrayList<OutputConfiguration>();
-//            outputConfigurationsList.add(outputConfiguration);
-//            ReflectionHelper.createCustomCaptureSession.invoke(mCameraDevice, null, outputConfigurationsList, 0, new CameraCaptureSession.StateCallback() {
-//                //32778
-//                        @Override
-//                        public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-//                            // The camera is already closed
-//                            if (null == mCameraDevice) {
-//                                return;
-//                            }
-//
-//                            // When the session is ready, we start displaying the preview.
-//                            mCaptureSession = cameraCaptureSession;
-//                            try {
-//                                // Auto focus should be continuous for camera preview.
-//                                //mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-//                                //        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-//                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-//                                        CaptureRequest.CONTROL_AF_MODE_AUTO);
-//
-//                                // Flash is automatically enabled when necessary.
-//                                setAutoFlash(mPreviewRequestBuilder);
-//
-//                                // Finally, we start displaying the camera preview.
-//                                mPreviewRequest = mPreviewRequestBuilder.build();
-//                                mCaptureSession.setRepeatingRequest(mPreviewRequest,
-//                                        mCaptureCallback, mBackgroundHandler);
-//                            } catch (CameraAccessException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//
-//                        @Override
-//                        public void onConfigureFailed(
-//                                @NonNull CameraCaptureSession cameraCaptureSession) {
-//                            showToast("Failed");
-//                        }
-//                    }, null
-//            );
-
-
-            mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),
-                    new CameraCaptureSession.StateCallback() {
-
+            List<OutputConfiguration> outputConfigurationList = new ArrayList<OutputConfiguration>();
+            List<Surface> surfaces = Arrays.asList(surface, mImageReader.getSurface());
+            for(Surface outputSurface: surfaces) {
+                OutputConfiguration outputConfiguration = new OutputConfiguration(outputSurface);
+                outputConfigurationList.add(outputConfiguration);
+            }
+            ReflectionHelper.createCustomCaptureSession.invoke(mCameraDevice, null, outputConfigurationList, 0, new CameraCaptureSession.StateCallback() { //32778 TODO night mode
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                             // The camera is already closed
@@ -993,6 +960,16 @@ public class CameraFragment extends Fragment
                                 // Auto focus should be continuous for camera preview.
                                 //mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                                 //        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+
+                                //CONTROL PREVIEW /////////////////////////////////////////////////////////////////
+                                //TEST DISTORTION CORRECTION
+                                if (mCameraId.equals("0")) {
+                                    mPreviewRequestBuilder.set(ReflectionHelper.NORMAL_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
+                                }
+                                if (mCameraId.equals("21")) {
+                                    mPreviewRequestBuilder.set(ReflectionHelper.ULTRA_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
+                                }
+                                //
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                                         CaptureRequest.CONTROL_AF_MODE_AUTO);
 
@@ -1015,7 +992,57 @@ public class CameraFragment extends Fragment
                         }
                     }, null
             );
-        } catch (CameraAccessException e) {
+
+
+//            mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),
+//                    new CameraCaptureSession.StateCallback() {
+//
+//                        @Override
+//                        public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
+//                            // The camera is already closed
+//                            if (null == mCameraDevice) {
+//                                return;
+//                            }
+//
+//                            // When the session is ready, we start displaying the preview.
+//                            mCaptureSession = cameraCaptureSession;
+//                            try {
+//                                // Auto focus should be continuous for camera preview.
+//                                //mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+//                                //        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+//
+//                                //CONTROL PREVIEW /////////////////////////////////////////////////////////////////
+//                                //TEST DISTORTION CORRECTION
+//                                if (mCameraId.equals("0")) {
+//                                    mPreviewRequestBuilder.set(ReflectionHelper.NORMAL_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
+//                                }
+//                                if (mCameraId.equals("21")) {
+//                                    mPreviewRequestBuilder.set(ReflectionHelper.ULTRA_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
+//                                }
+//                                //
+//                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+//                                        CaptureRequest.CONTROL_AF_MODE_AUTO);
+//
+//                                // Flash is automatically enabled when necessary.
+//                                setAutoFlash(mPreviewRequestBuilder);
+//
+//                                // Finally, we start displaying the camera preview.
+//                                mPreviewRequest = mPreviewRequestBuilder.build();
+//                                mCaptureSession.setRepeatingRequest(mPreviewRequest,
+//                                        mCaptureCallback, mBackgroundHandler);
+//                            } catch (CameraAccessException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//
+//                        @Override
+//                        public void onConfigureFailed(
+//                                @NonNull CameraCaptureSession cameraCaptureSession) {
+//                            showToast("Failed");
+//                        }
+//                    }, null
+//            );
+        } catch (CameraAccessException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
     }
@@ -1058,7 +1085,11 @@ public class CameraFragment extends Fragment
      */
     //private void takePicture() {
     public void takePicture() {
-        lockFocus();
+        if (mCameraId.equals("21")) { //TODO it should detect whether camera has autofocus feature or not
+            captureStillPicture();
+        } else {
+            lockFocus();
+        }
     }
 
     /**
@@ -1066,6 +1097,7 @@ public class CameraFragment extends Fragment
      */
     private void lockFocus() {
         try {
+            Log.i("AlphaCamera", "Locking focus");
             // This is how to tell the camera to lock focus.
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
                     CameraMetadata.CONTROL_AF_TRIGGER_START);
@@ -1101,6 +1133,7 @@ public class CameraFragment extends Fragment
      * {@link #mCaptureCallback} from both {@link #lockFocus()}.
      */
     private void captureStillPicture() {
+        Log.i("AlphaCamera", " capturing Still Picture - start");
         try {
             final Activity activity = getActivity();
             if (null == activity || null == mCameraDevice) {
@@ -1129,8 +1162,8 @@ public class CameraFragment extends Fragment
                         CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
 
                 if (mCameraId.equals("0") && MANUAL_ISO_VALUE < 400) {
-                    captureBuilder.set(reflectionHelper.MTK_REMOSAIC_ENABLE_KEY, 1);
-                    captureBuilder.set(reflectionHelper.XIAOMI_REMOSAIC_ENABLE_KEY, 1);
+                    captureBuilder.set(ReflectionHelper.MTK_REMOSAIC_ENABLE_KEY, ReflectionHelper.CONTROL_REMOSAIC_HINT_ON);
+                    captureBuilder.set(ReflectionHelper.XIAOMI_REMOSAIC_ENABLE_KEY, 1);
                 }
                 //captureBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, Long.valueOf(32));
                 //captureBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, 100);
@@ -1142,9 +1175,27 @@ public class CameraFragment extends Fragment
                         mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
                 captureBuilder.addTarget(mImageReader.getSurface());
 
-                //force remosaic
-                captureBuilder.set(reflectionHelper.MTK_REMOSAIC_ENABLE_KEY, 1);
-                captureBuilder.set(reflectionHelper.XIAOMI_REMOSAIC_ENABLE_KEY, 1);
+                //TEST MTK
+                if (mCameraId.equals("0")) {
+                    //force remosaic
+                    captureBuilder.set(ReflectionHelper.MTK_REMOSAIC_ENABLE_KEY, ReflectionHelper.CONTROL_REMOSAIC_HINT_ON);
+                    captureBuilder.set(ReflectionHelper.XIAOMI_REMOSAIC_ENABLE_KEY, 1);
+                    captureBuilder.set(ReflectionHelper.NORMAL_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
+                    //StockHelper.copyFpcDataFromCaptureResultToRequest(mPreviewCaptureResult,captureBuilder);
+                    captureBuilder.set(ReflectionHelper.DEPURPLE, Byte.valueOf("1"));
+                }
+                if (mCameraId.equals("21")) {
+                    captureBuilder.set(ReflectionHelper.ULTRA_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
+//                    byte [] byteArray = new byte[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0,-16,63,0,0,0,0,0,0,0,0,-128,-49,60,106,44,73,
+//                            -95,63,64,91,115,-8,-88,77,-63,63,0,64,56,119,-51,127,-45,63,48,
+//                            -25,-67,-109,-78,95,-31,63,88,115,-113,-10,-48,58,-21,63,-44,28,121,
+//                            -111,-39,-83,-13,63,20,85,113,45,-86,-25,-6,63,70,-57,120,73,87,-87,1,64,-66,120,-61,
+//                            -91,19,124,6,64,-28,70,-94,-98,109,-15,11,64,-82,79,127,-80,-51,7,17,64,6,96,-24,26,-36,110,
+//                            20,64,-31,-55,26,18,-19,49,24,64,84,-10,-42,-87,-107,85,28,64,-50,-27,-86,-14,-127,111,32,64,-94,-10,-18
+//                            ,17,8,-22,34,64,94,122,114,-57,-88,-99,37,64,-41,33,22,12,27,-114,40,64,119,-111,-122,91,-113,-65,43,64,40,-120,-76,94,-64,54,47,64};
+//                    captureBuilder.set(ReflectionHelper.CONTROL_DISTORTION_FPC_DATA, byteArray);
+                    captureBuilder.set(ReflectionHelper.DEPURPLE, Byte.valueOf("1"));
+                }
 
                 // Use the same AE and AF modes as the preview.
                 captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
@@ -1275,6 +1326,16 @@ public class CameraFragment extends Fragment
 //            if(captureResult == null)
 //                Log.i("AlphaCamera", "captureResult null!");
             mCameraCharacteristics = cameraCharacteristics;
+
+            //DISTORTION DATA
+//            Log.i("AlphaCamera", "Distortion data: ");
+//            byte[] byteArray = (byte[]) captureResult.get(ReflectionHelper.DISTORTION_FPC_DATA); //VendorTagHelper.getValueQuietly(captureResult, CaptureResultVendorTags.DISTORTION_FPC_DATA);
+//            String s = "";
+//            for(byte b : byteArray){
+//                s += String.valueOf(b) + ",";
+//            }
+//            Log.i("AlphaCamera", s);
+
             mCaptureResult = captureResult;
         }
 

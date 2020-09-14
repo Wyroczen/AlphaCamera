@@ -1,5 +1,6 @@
 package com.wyroczen.alphacamera.reflection;
 
+import android.graphics.Rect;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CaptureRequest;
@@ -15,35 +16,62 @@ import java.util.List;
 public class ReflectionHelper {
 
     public static CaptureResult.Key<int[]> SUPPERNIGHT_BLACKLEVEL_KEY = null;
-    public static CaptureRequest.Key<Boolean> HINT_FOR_RAW_REPROCESS_KEY = null;
-    public static CaptureRequest.Key<Integer> MTK_REMOSAIC_ENABLE_KEY = null;
-    public static CaptureRequest.Key<Integer> XIAOMI_REMOSAIC_ENABLE_KEY = null;
+    public static CaptureResult.Key<byte[]> DISTORTION_FPC_DATA = null;
 
+    //Capture Request Keys
+    public static CaptureRequest.Key<Boolean> HINT_FOR_RAW_REPROCESS_KEY = null;
+    public static CaptureRequest.Key<int[]> MTK_REMOSAIC_ENABLE_KEY = null;
+    public static CaptureRequest.Key<Integer> XIAOMI_REMOSAIC_ENABLE_KEY = null;
+    public static CaptureRequest.Key<Rect> POST_PROCESS_CROP_REGION = null;
+    public static CaptureRequest.Key<byte[]> CONTROL_DISTORTION_FPC_DATA = null;
+    public static CaptureRequest.Key<Byte> ULTRA_WIDE_LENS_DISTORTION_CORRECTION_LEVEL = null;
+    public static CaptureRequest.Key<Byte> NORMAL_WIDE_LENS_DISTORTION_CORRECTION_LEVEL = null;
+    public static CaptureRequest.Key<Byte> DEPURPLE = null;
+
+
+    public static final int[] CONTROL_REMOSAIC_HINT_OFF = new int[]{0};
+    public static final int[] CONTROL_REMOSAIC_HINT_ON = new int[]{1};
+
+    //Methods
     public static Method createCustomCaptureSession = null;
 
     public ReflectionHelper() {
         //Vendor keys
-        Constructor<CaptureResult.Key> cameraCharacteristicsConstructor;
+        Constructor<CaptureResult.Key> captureResultKeyConstructor;
         try {
-            cameraCharacteristicsConstructor = CaptureResult.Key.class.getDeclaredConstructor(String.class, Class.class);
-            cameraCharacteristicsConstructor.setAccessible(true);
+            captureResultKeyConstructor = CaptureResult.Key.class.getDeclaredConstructor(String.class, Class.class);
+            captureResultKeyConstructor.setAccessible(true);
             SUPPERNIGHT_BLACKLEVEL_KEY =
-                    cameraCharacteristicsConstructor.newInstance("com.mediatek.suppernightfeature.blacklevel", int[].class);
+                    captureResultKeyConstructor.newInstance("com.mediatek.suppernightfeature.blacklevel", int[].class);
+            DISTORTION_FPC_DATA =
+                    captureResultKeyConstructor.newInstance("xiaomi.distortion.distortioFpcData", byte[].class);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        Constructor<CaptureRequest.Key> cameraCharacteristicsConstructor2;
+        Constructor<CaptureRequest.Key> captureRequestKeyConstructor;
         try {
-            cameraCharacteristicsConstructor2 = CaptureRequest.Key.class.getDeclaredConstructor(String.class, Class.class);
-            cameraCharacteristicsConstructor2.setAccessible(true);
+            captureRequestKeyConstructor = CaptureRequest.Key.class.getDeclaredConstructor(String.class, Class.class);
+            captureRequestKeyConstructor.setAccessible(true);
             HINT_FOR_RAW_REPROCESS_KEY =
-                    cameraCharacteristicsConstructor2.newInstance("com.mediatek.control.capture.hintForRawReprocess", Boolean.class);
+                    captureRequestKeyConstructor.newInstance("com.mediatek.control.capture.hintForRawReprocess", Boolean.class);
             MTK_REMOSAIC_ENABLE_KEY =
-                    cameraCharacteristicsConstructor2.newInstance("com.mediatek.control.capture.remosaicenable", Integer.class);
+                    captureRequestKeyConstructor.newInstance("com.mediatek.control.capture.remosaicenable", int[].class);
             XIAOMI_REMOSAIC_ENABLE_KEY =
-                    cameraCharacteristicsConstructor2.newInstance("xiaomi.remosaic.enabled", Integer.class);
+                    captureRequestKeyConstructor.newInstance("xiaomi.remosaic.enabled", Integer.class);
+            POST_PROCESS_CROP_REGION =
+                    captureRequestKeyConstructor.newInstance("xiaomi.superResolution.cropRegionMtk", Rect.class);
+            CONTROL_DISTORTION_FPC_DATA =
+                    captureRequestKeyConstructor.newInstance("xiaomi.distortion.distortioFpcData", byte[].class);
+            ULTRA_WIDE_LENS_DISTORTION_CORRECTION_LEVEL =
+                    captureRequestKeyConstructor.newInstance("xiaomi.distortion.ultraWideDistortionLevel", Byte.class);
+            NORMAL_WIDE_LENS_DISTORTION_CORRECTION_LEVEL =
+                    captureRequestKeyConstructor.newInstance("xiaomi.distortion.distortionLevelApplied", Byte.class);
+            DEPURPLE =
+                    captureRequestKeyConstructor.newInstance("xiaomi.depurple.enabled", Byte.class);
+
+
         } catch (Exception e) {
             e.printStackTrace();
         }
