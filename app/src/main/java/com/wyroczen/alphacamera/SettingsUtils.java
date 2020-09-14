@@ -19,6 +19,8 @@ public class SettingsUtils {
 
     public static final String PREF_ENABLE_RAW_KEY = "pref_enableRaw_key";
     public static final String PREF_RESOLUTION_BACK_KEY = "pref_resolution_backLens";
+    public static final String PREF_MAX_BRIGHTNESS_KEY = "pref_maxBrightness_key";
+    public static final String PREF_TAP_TO_CAPTURE_KEY = "pref_tapToCapture_key";
 
     public Boolean readBooleanSettings(Context context, String key) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);

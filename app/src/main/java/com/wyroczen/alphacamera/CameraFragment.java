@@ -8,6 +8,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -29,6 +30,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.DngCreator;
 import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.OutputConfiguration;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
@@ -54,15 +56,19 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.wyroczen.alphacamera.reflection.ReflectionHelper;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -74,6 +80,8 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import android.provider.Settings.System;
+
 public class CameraFragment extends Fragment
         implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
@@ -82,12 +90,15 @@ public class CameraFragment extends Fragment
      */
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_CAMERA_PERMISSION = 1;
+    private static final int REQUEST_WRITE_SETTINGS_PERMISSION = 1;
     private static final String FRAGMENT_DIALOG = "dialog";
     private int chosenImageFormat;
     private Size choosenBackResolution;
     private CaptureResult mCaptureResult;
     private CameraCharacteristics mCameraCharacteristics;
     private SettingsUtils mSettingsUtils;
+
+    private ReflectionHelper reflectionHelper = null;
 
     public static final String CAMERA_BACK_MAIN = "0";
     public static final String CAMERA_FRONT = "1";
@@ -606,6 +617,12 @@ public class CameraFragment extends Fragment
         Boolean rawEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_ENABLE_RAW_KEY);
         chosenImageFormat = rawEnabled ? ImageFormat.RAW_SENSOR : ImageFormat.JPEG;
         choosenBackResolution = mSettingsUtils.readSizeSettings(getContext(), SettingsUtils.PREF_RESOLUTION_BACK_KEY);
+        //Brightness:
+        Boolean maxBrightness = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_MAX_BRIGHTNESS_KEY);
+        setAppBrightness(maxBrightness);
+
+        //Reflection Helper:
+        reflectionHelper = new ReflectionHelper();
 
         //mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
         String fileName = new SimpleDateFormat("yyyMMddHHhh").format(new Date()) + "_AlphaCamera";
@@ -616,6 +633,28 @@ public class CameraFragment extends Fragment
         }
         super.onStart();
 
+    }
+
+    private void setAppBrightness(Boolean shouldUseMaxBrightness) {
+        if (shouldUseMaxBrightness) {
+            //Set max brightness
+            float brightness = 100 / (float) 255;
+            WindowManager.LayoutParams lp = getActivity().getWindow().getAttributes();
+            lp.screenBrightness = brightness;
+            getActivity().getWindow().setAttributes(lp);
+        } else {
+            //Set brightness to system brightness
+            ContentResolver contentResolver = getActivity().getContentResolver();
+            float brightness = 0;
+            try {
+                brightness = System.getInt(contentResolver, System.SCREEN_BRIGHTNESS);
+            } catch (Settings.SettingNotFoundException e) {
+                e.printStackTrace();
+            }
+            WindowManager.LayoutParams lp = getActivity().getWindow().getAttributes();
+            lp.screenBrightness = brightness;
+            getActivity().getWindow().setAttributes(lp);
+        }
     }
 
     private void requestCameraPermission() {
@@ -706,7 +745,7 @@ public class CameraFragment extends Fragment
                         new CompareSizesByArea());
 
                 Log.i("AlphaCamera: ", "Image reader creator: ID: " + mCameraId + " Width: " + choosenBackResolution.getWidth() + " Height: " + choosenBackResolution.getHeight());
-                if(choosenBackResolution.getHeight() == 0 || choosenBackResolution.getWidth() == 0){
+                if (choosenBackResolution.getHeight() == 0 || choosenBackResolution.getWidth() == 0) {
                     choosenBackResolution = largest;
                 }
 
@@ -894,6 +933,50 @@ public class CameraFragment extends Fragment
             mPreviewRequestBuilder.addTarget(surface);
 
             // Here, we create a CameraCaptureSession for camera preview.
+
+//            //Output configuration list and custom capture session
+//            OutputConfiguration outputConfiguration = new OutputConfiguration(mImageReader.getSurface());
+//            List<OutputConfiguration> outputConfigurationsList = new ArrayList<OutputConfiguration>();
+//            outputConfigurationsList.add(outputConfiguration);
+//            ReflectionHelper.createCustomCaptureSession.invoke(mCameraDevice, null, outputConfigurationsList, 0, new CameraCaptureSession.StateCallback() {
+//                //32778
+//                        @Override
+//                        public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
+//                            // The camera is already closed
+//                            if (null == mCameraDevice) {
+//                                return;
+//                            }
+//
+//                            // When the session is ready, we start displaying the preview.
+//                            mCaptureSession = cameraCaptureSession;
+//                            try {
+//                                // Auto focus should be continuous for camera preview.
+//                                //mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+//                                //        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+//                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+//                                        CaptureRequest.CONTROL_AF_MODE_AUTO);
+//
+//                                // Flash is automatically enabled when necessary.
+//                                setAutoFlash(mPreviewRequestBuilder);
+//
+//                                // Finally, we start displaying the camera preview.
+//                                mPreviewRequest = mPreviewRequestBuilder.build();
+//                                mCaptureSession.setRepeatingRequest(mPreviewRequest,
+//                                        mCaptureCallback, mBackgroundHandler);
+//                            } catch (CameraAccessException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//
+//                        @Override
+//                        public void onConfigureFailed(
+//                                @NonNull CameraCaptureSession cameraCaptureSession) {
+//                            showToast("Failed");
+//                        }
+//                    }, null
+//            );
+
+
             mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),
                     new CameraCaptureSession.StateCallback() {
 
@@ -908,8 +991,10 @@ public class CameraFragment extends Fragment
                             mCaptureSession = cameraCaptureSession;
                             try {
                                 // Auto focus should be continuous for camera preview.
+                                //mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                                //        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                                        CaptureRequest.CONTROL_AF_MODE_AUTO);
 
                                 // Flash is automatically enabled when necessary.
                                 setAutoFlash(mPreviewRequestBuilder);
@@ -971,7 +1056,8 @@ public class CameraFragment extends Fragment
     /**
      * Initiate a still image capture.
      */
-    private void takePicture() {
+    //private void takePicture() {
+    public void takePicture() {
         lockFocus();
     }
 
@@ -1038,6 +1124,14 @@ public class CameraFragment extends Fragment
                 captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_MODE_OFF);
                 captureBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, MANUAL_EXP_VALUE); //1/2S 500000000L
                 captureBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, MANUAL_ISO_VALUE);
+
+                captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+
+                if (mCameraId.equals("0") && MANUAL_ISO_VALUE < 400) {
+                    captureBuilder.set(reflectionHelper.MTK_REMOSAIC_ENABLE_KEY, 1);
+                    captureBuilder.set(reflectionHelper.XIAOMI_REMOSAIC_ENABLE_KEY, 1);
+                }
                 //captureBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, Long.valueOf(32));
                 //captureBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, 100);
                 //captureBuilder.set(CaptureRequest.SENSOR_FRAME_DURATION, mCameraCharacteristics.get(SENSOR_INFO_MAX_FRAME_DURATION));
@@ -1048,9 +1142,15 @@ public class CameraFragment extends Fragment
                         mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
                 captureBuilder.addTarget(mImageReader.getSurface());
 
+                //force remosaic
+                captureBuilder.set(reflectionHelper.MTK_REMOSAIC_ENABLE_KEY, 1);
+                captureBuilder.set(reflectionHelper.XIAOMI_REMOSAIC_ENABLE_KEY, 1);
+
                 // Use the same AE and AF modes as the preview.
                 captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                         CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                //captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                //        CaptureRequest.CONTROL_AF_MODE_AUTO);
                 setAutoFlash(captureBuilder);
             }
 
@@ -1133,7 +1233,7 @@ public class CameraFragment extends Fragment
                 //            .show();
                 //}
                 Intent intent = new Intent(activity, SettingsActivity.class);
-                intent.putExtra("mCameraId",mCameraId);
+                intent.putExtra("mCameraId", mCameraId);
                 startActivity(intent);
 
                 break;

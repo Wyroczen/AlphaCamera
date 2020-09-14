@@ -5,6 +5,9 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+
 public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureListener {
     private static int MIN_SWIPE_DISTANCE_X = 100;
     private static int MIN_SWIPE_DISTANCE_Y = 100;
@@ -69,6 +72,14 @@ public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureL
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
+        //Tap to capture photo
+        SettingsUtils settingsUtils = new SettingsUtils();
+        if (activityCamera != null) {
+            CameraFragment cameraFragment = (CameraFragment) activityCamera.getSupportFragmentManager().findFragmentById(R.id.container);
+            Boolean tapToCapture = settingsUtils.readBooleanSettings(cameraFragment.getContext(), SettingsUtils.PREF_TAP_TO_CAPTURE_KEY);
+            if(tapToCapture)
+                cameraFragment.takePicture();
+        }
         Log.i("AlphaCamera", "Single tap");
         return true;
     }

@@ -4,7 +4,7 @@
     <PreferenceCategory android:title="@string/pref_PhotoSettings">
         <ListPreference
             android:key="pref_resolution_backLens"
-            android:title="Photo Resolution Back"
+            android:title="Photo Resolution"
             android:summary="Choose resolution for JPEG capture"
             android:defaultValue="4640x3472"
             android:entries="@array/pref_backRes_entries"
@@ -20,6 +20,18 @@
             android:key="pref_enableRaw_key"
             android:title="RAW Capture"
             android:summary="Capture dng instead of jpeg"
+            android:defaultValue="false"
+            />
+        <CheckBoxPreference
+            android:key="pref_maxBrightness_key"
+            android:title="Full Brightness"
+            android:summary="Sets max screen brightness"
+            android:defaultValue="false"
+            />
+        <CheckBoxPreference
+            android:key="pref_tapToCapture_key"
+            android:title="Tap to capture"
+            android:summary="Photo will be captured after tapping on the viewfinder"
             android:defaultValue="false"
             />
     </PreferenceCategory>
