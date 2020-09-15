@@ -21,6 +21,7 @@
     <string name="description_settings">Settings</string>
 
     <string name="request_permission">This sample needs camera permission.</string>
+    <string name="request_fine_location_permission">This sample needs location permission.</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
     <string name="intro_message">Intro</string>
     <string name="title_activity_camera_video">CameraVideoActivity</string>
