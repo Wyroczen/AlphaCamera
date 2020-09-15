@@ -32,8 +32,10 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.DngCreator;
 import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.BlackLevelPattern;
 import android.hardware.camera2.params.OutputConfiguration;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.ExifInterface;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
@@ -97,6 +99,7 @@ public class CameraFragment extends Fragment
     private static final String FRAGMENT_DIALOG = "dialog";
     private int chosenImageFormat;
     private Size choosenBackResolution;
+    private Boolean mFrontMirror;
     private CaptureResult mCaptureResult;
     private CameraCharacteristics mCameraCharacteristics;
     private SettingsUtils mSettingsUtils;
@@ -281,6 +284,17 @@ public class CameraFragment extends Fragment
         @Override
         public void onImageAvailable(ImageReader reader) {
             mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile, chosenImageFormat, mCameraCharacteristics, mCaptureResult));
+
+//            //TODO EXIF TAGS LOCATION
+//            ExifInterface exif = null;
+//            try {
+//                exif = new ExifInterface(mFile.getAbsolutePath());
+//                exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, "10");
+//                exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, "10");
+//                exif.saveAttributes();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         }
 
     };
@@ -624,6 +638,7 @@ public class CameraFragment extends Fragment
         Boolean rawEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_ENABLE_RAW_KEY);
         chosenImageFormat = rawEnabled ? ImageFormat.RAW_SENSOR : ImageFormat.JPEG;
         choosenBackResolution = mSettingsUtils.readSizeSettings(getContext(), SettingsUtils.PREF_RESOLUTION_BACK_KEY);
+        mFrontMirror = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_FRONT_FLIP_KEY);
         //Brightness:
         Boolean maxBrightness = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_MAX_BRIGHTNESS_KEY);
         setAppBrightness(maxBrightness);
@@ -942,11 +957,11 @@ public class CameraFragment extends Fragment
             // Here, we create a CameraCaptureSession for camera preview.
             List<OutputConfiguration> outputConfigurationList = new ArrayList<OutputConfiguration>();
             List<Surface> surfaces = Arrays.asList(surface, mImageReader.getSurface());
-            for(Surface outputSurface: surfaces) {
+            for (Surface outputSurface : surfaces) {
                 OutputConfiguration outputConfiguration = new OutputConfiguration(outputSurface);
                 outputConfigurationList.add(outputConfiguration);
             }
-            ReflectionHelper.createCustomCaptureSession.invoke(mCameraDevice, null, outputConfigurationList, 0, new CameraCaptureSession.StateCallback() { //32778 TODO night mode
+            ReflectionHelper.createCustomCaptureSession.invoke(mCameraDevice, null, outputConfigurationList, 32778, new CameraCaptureSession.StateCallback() { //32778 TODO night mode
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                             // The camera is already closed
@@ -965,9 +980,11 @@ public class CameraFragment extends Fragment
                                 //TEST DISTORTION CORRECTION
                                 if (mCameraId.equals("0")) {
                                     mPreviewRequestBuilder.set(ReflectionHelper.NORMAL_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
-                                }
-                                if (mCameraId.equals("21")) {
+                                } else if (mCameraId.equals("21")) {
                                     mPreviewRequestBuilder.set(ReflectionHelper.ULTRA_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
+                                } else if (mCameraId.equals("1")) {
+                                    //mPreviewRequestBuilder.set(ReflectionHelper.FRONT_MIRROR, true);
+                                    //mPreviewRequestBuilder.set(ReflectionHelper.SANPSHOT_FLIP_MODE, ReflectionHelper.VALUE_SANPSHOT_FLIP_MODE_OFF);
                                 }
                                 //
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
@@ -1085,7 +1102,7 @@ public class CameraFragment extends Fragment
      */
     //private void takePicture() {
     public void takePicture() {
-        if (mCameraId.equals("21")) { //TODO it should detect whether camera has autofocus feature or not
+        if (mCameraId.equals("21") || mCameraId.equals("1")) { //TODO it should detect whether camera has autofocus feature or not
             captureStillPicture();
         } else {
             lockFocus();
@@ -1175,6 +1192,9 @@ public class CameraFragment extends Fragment
                         mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
                 captureBuilder.addTarget(mImageReader.getSurface());
 
+                //Blacklevel
+
+
                 //TEST MTK
                 if (mCameraId.equals("0")) {
                     //force remosaic
@@ -1183,8 +1203,11 @@ public class CameraFragment extends Fragment
                     captureBuilder.set(ReflectionHelper.NORMAL_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
                     //StockHelper.copyFpcDataFromCaptureResultToRequest(mPreviewCaptureResult,captureBuilder);
                     captureBuilder.set(ReflectionHelper.DEPURPLE, Byte.valueOf("1"));
-                }
-                if (mCameraId.equals("21")) {
+                    //captureBuilder.set(ReflectionHelper.SUPER_NIGHT_SCENE_ENABLED, true);
+                    //captureBuilder.set(ReflectionHelper.CONTROL_CAPTURE_ISP_META_ENABLE, Byte.valueOf("1"));
+                    //captureBuilder.set(ReflectionHelper.CONTROL_CAPTURE_ISP_META_REQUEST, ReflectionHelper.CONTROL_CAPTURE_ISP_TUNING_REQ_RAW);
+                    //captureBuilder.set(ReflectionHelper.CONTROL_CAPTURE_HIGH_QUALITY_REPROCESS, ReflectionHelper.CONTROL_CAPTURE_HIGH_QUALITY_YUV_ON);
+                } else if (mCameraId.equals("21")) {
                     captureBuilder.set(ReflectionHelper.ULTRA_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
 //                    byte [] byteArray = new byte[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0,-16,63,0,0,0,0,0,0,0,0,-128,-49,60,106,44,73,
 //                            -95,63,64,91,115,-8,-88,77,-63,63,0,64,56,119,-51,127,-45,63,48,
@@ -1195,6 +1218,14 @@ public class CameraFragment extends Fragment
 //                            ,17,8,-22,34,64,94,122,114,-57,-88,-99,37,64,-41,33,22,12,27,-114,40,64,119,-111,-122,91,-113,-65,43,64,40,-120,-76,94,-64,54,47,64};
 //                    captureBuilder.set(ReflectionHelper.CONTROL_DISTORTION_FPC_DATA, byteArray);
                     captureBuilder.set(ReflectionHelper.DEPURPLE, Byte.valueOf("1"));
+                } else if (mCameraId.equals("1")) {
+                    if (mFrontMirror) {
+                        captureBuilder.set(ReflectionHelper.FRONT_MIRROR, true);
+                        captureBuilder.set(ReflectionHelper.SANPSHOT_FLIP_MODE, ReflectionHelper.VALUE_SANPSHOT_FLIP_MODE_ON);
+                    } else if(!mFrontMirror) {
+                        captureBuilder.set(ReflectionHelper.FRONT_MIRROR, true);
+                        captureBuilder.set(ReflectionHelper.SANPSHOT_FLIP_MODE, ReflectionHelper.VALUE_SANPSHOT_FLIP_MODE_OFF);
+                    }
                 }
 
                 // Use the same AE and AF modes as the preview.

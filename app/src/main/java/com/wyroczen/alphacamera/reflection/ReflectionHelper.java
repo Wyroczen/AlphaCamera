@@ -21,16 +21,34 @@ public class ReflectionHelper {
     //Capture Request Keys
     public static CaptureRequest.Key<Boolean> HINT_FOR_RAW_REPROCESS_KEY = null;
     public static CaptureRequest.Key<int[]> MTK_REMOSAIC_ENABLE_KEY = null;
+    public static final int[] CONTROL_REMOSAIC_HINT_OFF = new int[]{0};
+    public static final int[] CONTROL_REMOSAIC_HINT_ON = new int[]{1};
     public static CaptureRequest.Key<Integer> XIAOMI_REMOSAIC_ENABLE_KEY = null;
     public static CaptureRequest.Key<Rect> POST_PROCESS_CROP_REGION = null;
     public static CaptureRequest.Key<byte[]> CONTROL_DISTORTION_FPC_DATA = null;
     public static CaptureRequest.Key<Byte> ULTRA_WIDE_LENS_DISTORTION_CORRECTION_LEVEL = null;
     public static CaptureRequest.Key<Byte> NORMAL_WIDE_LENS_DISTORTION_CORRECTION_LEVEL = null;
     public static CaptureRequest.Key<Byte> DEPURPLE = null;
+    public static CaptureRequest.Key<Boolean> FRONT_MIRROR = null;
+    public static CaptureRequest.Key<Integer> SANPSHOT_FLIP_MODE = null;
+    public static final int VALUE_SANPSHOT_FLIP_MODE_OFF = 0;
+    public static final int VALUE_SANPSHOT_FLIP_MODE_ON = 1;
 
-
-    public static final int[] CONTROL_REMOSAIC_HINT_OFF = new int[]{0};
-    public static final int[] CONTROL_REMOSAIC_HINT_ON = new int[]{1};
+//    public static CaptureRequest.Key<Boolean> SUPER_NIGHT_SCENE_ENABLED = null;
+//    public static CaptureRequest.Key<Integer> CONTROL_CAPTURE_HIGH_QUALITY_REPROCESS = null;
+//    public static final int CONTROL_CAPTURE_HIGH_QUALITY_YUV_OFF = 0;
+//    public static final int CONTROL_CAPTURE_HIGH_QUALITY_YUV_ON = 1;
+//    public static CaptureRequest.Key<Integer> CONTROL_CAPTURE_HINT_FOR_ISP_TUNING = null;
+//    public static final int CONTROL_CAPTURE_HINT_FOR_ISP_TUNING_HDR = 5005;
+//    public static final int CONTROL_CAPTURE_HINT_FOR_ISP_TUNING_LLHDR = 5007;
+//    public static final int CONTROL_CAPTURE_HINT_FOR_ISP_TUNING_MFSR = 5006;
+//    public static CaptureRequest.Key<Byte> CONTROL_CAPTURE_ISP_META_ENABLE = null;
+//    public static CaptureRequest.Key<Byte> CONTROL_CAPTURE_ISP_META_REQUEST = null;
+//    public static final byte CONTROL_CAPTURE_ISP_TUNING_DATA_BUFFER = 2;
+//    public static final byte CONTROL_CAPTURE_ISP_TUNING_DATA_IN_METADATA = 1;
+//    public static final byte CONTROL_CAPTURE_ISP_TUNING_DATA_NONE = 0;
+//    public static final byte CONTROL_CAPTURE_ISP_TUNING_REQ_RAW = 1;
+//    public static final byte CONTROL_CAPTURE_ISP_TUNING_REQ_YUV = 2;
 
     //Methods
     public static Method createCustomCaptureSession = null;
@@ -70,6 +88,20 @@ public class ReflectionHelper {
                     captureRequestKeyConstructor.newInstance("xiaomi.distortion.distortionLevelApplied", Byte.class);
             DEPURPLE =
                     captureRequestKeyConstructor.newInstance("xiaomi.depurple.enabled", Byte.class);
+            FRONT_MIRROR =
+                    captureRequestKeyConstructor.newInstance("xiaomi.flip.enabled", Boolean.class);
+            SANPSHOT_FLIP_MODE =
+                    captureRequestKeyConstructor.newInstance("com.mediatek.control.capture.flipmode", Integer.class);
+            //SUPER_NIGHT_SCENE_ENABLED =
+            //        captureRequestKeyConstructor.newInstance("xiaomi.supernight.enabled", Boolean.class);
+//            CONTROL_CAPTURE_HIGH_QUALITY_REPROCESS =
+//                    captureRequestKeyConstructor.newInstance("com.mediatek.control.capture.highQualityYuv", Integer.class);
+//            CONTROL_CAPTURE_HINT_FOR_ISP_TUNING =
+//                    captureRequestKeyConstructor.newInstance("com.mediatek.control.capture.hintForIspTuning", Integer.class);
+//            CONTROL_CAPTURE_ISP_META_ENABLE =
+//                    captureRequestKeyConstructor.newInstance("com.mediatek.control.capture.ispMetaEnable", Byte.class);
+//            CONTROL_CAPTURE_ISP_META_REQUEST =
+//                    captureRequestKeyConstructor.newInstance("com.mediatek.control.capture.ispTuningRequest", Byte.class);
 
 
         } catch (Exception e) {

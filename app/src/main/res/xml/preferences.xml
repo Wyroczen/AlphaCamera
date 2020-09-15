@@ -34,6 +34,12 @@
             android:summary="Photo will be captured after tapping on the viewfinder"
             android:defaultValue="false"
             />
+        <CheckBoxPreference
+            android:key="pref_frontFlip_key"
+            android:title="Mirror front photo"
+            android:summary="Photo from front camera will be mirrored before save"
+            android:defaultValue="false"
+            />
     </PreferenceCategory>
 
 </PreferenceScreen>
