@@ -54,7 +54,13 @@ public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureL
                 Log.i("AlphaCamera", "Swipe to left");
                 //Start video activity
                 if (activityCamera != null) {
+
+                    //Get info about currently used lens to pass it through to video activity
+                    CameraFragment cameraFragment = (CameraFragment) activityCamera.getSupportFragmentManager().findFragmentById(R.id.container);
+                    String cameraId = cameraFragment.getmCameraId();
+
                     Intent i = new Intent(activityCamera, CameraVideoActivity.class);
+                    i.putExtra("CAMERA_ID", cameraId);
                     activityCamera.startActivity(i);
                 }
             } else {

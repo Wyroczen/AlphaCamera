@@ -749,6 +749,10 @@ public class CameraFragment extends Fragment
         }
     }
 
+    public String getmCameraId(){
+       return mCameraId;
+    }
+
     /**
      * Change camera
      */

@@ -226,15 +226,18 @@ public class CameraVideoFragment extends Fragment
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
 
-            String cameraId = cameraManager.getCameraIdList()[0]; // Default to back camera
-            for (String id : cameraManager.getCameraIdList()) {
-                CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(id);
-                int cameraFacing = characteristics.get(CameraCharacteristics.LENS_FACING);
-                if (cameraFacing == mCameraFacing) {
-                    cameraId = id;
-                    break;
-                }
-            }
+            String cameraId = getActivity().getIntent().getStringExtra("CAMERA_ID");
+            Log.i("AlphaCamera-Video", " Camera id: " + cameraId);
+
+//            String cameraId = cameraManager.getCameraIdList()[0]; // Default to back camera
+//            for (String id : cameraManager.getCameraIdList()) {
+//                CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(id);
+//                int cameraFacing = characteristics.get(CameraCharacteristics.LENS_FACING);
+//                if (cameraFacing == mCameraFacing) {
+//                    cameraId = id;
+//                    break;
+//                }
+//            }
 
             CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics
