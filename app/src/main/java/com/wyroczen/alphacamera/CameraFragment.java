@@ -38,6 +38,7 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ExifInterface;
 import android.media.Image;
 import android.media.ImageReader;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -100,10 +101,13 @@ public class CameraFragment extends Fragment
     private int chosenImageFormat;
     private Size choosenBackResolution;
     private Boolean mFrontMirror;
+    private Boolean mShutterSoundEnabled;
     private CaptureResult mCaptureResult;
     private CameraCharacteristics mCameraCharacteristics;
     private SettingsUtils mSettingsUtils;
     //private CaptureResult mPreviewCaptureResult;
+
+    private MediaPlayer shutterMediaPlayer = null;
 
     private ReflectionHelper reflectionHelper = null;
 
@@ -659,10 +663,16 @@ public class CameraFragment extends Fragment
 
     @Override
     public void onStart() {
+
+        //Camera shutter sound
+        shutterMediaPlayer = MediaPlayer.create(getActivity(),R.raw.shutter_sound);
+
+        //Settings:
         Boolean rawEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_ENABLE_RAW_KEY);
         chosenImageFormat = rawEnabled ? ImageFormat.RAW_SENSOR : ImageFormat.JPEG;
         choosenBackResolution = mSettingsUtils.readSizeSettings(getContext(), SettingsUtils.PREF_RESOLUTION_BACK_KEY);
         mFrontMirror = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_FRONT_FLIP_KEY);
+        mShutterSoundEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_SHUTTER_SOUND_KEY);
         //Brightness:
         Boolean maxBrightness = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_MAX_BRIGHTNESS_KEY);
         setAppBrightness(maxBrightness);
@@ -1271,6 +1281,7 @@ public class CameraFragment extends Fragment
                         captureBuilder.set(ReflectionHelper.SANPSHOT_FLIP_MODE, ReflectionHelper.VALUE_SANPSHOT_FLIP_MODE_OFF);
                     }
                 }
+                
 
                 // Use the same AE and AF modes as the preview.
                 captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
@@ -1347,6 +1358,8 @@ public class CameraFragment extends Fragment
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.capture_button: {
+                if(shutterMediaPlayer != null && mShutterSoundEnabled)
+                    shutterMediaPlayer.start();
                 takePicture();
                 break;
             }

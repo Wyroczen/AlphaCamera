@@ -40,6 +40,12 @@
             android:summary="Photo from front camera will be mirrored before save"
             android:defaultValue="false"
             />
+        <CheckBoxPreference
+            android:key="pref_shutterSound_key"
+            android:title="Capture sound"
+            android:summary="Play sound after pressing shutter"
+            android:defaultValue="false"
+            />
     </PreferenceCategory>
 
 </PreferenceScreen>

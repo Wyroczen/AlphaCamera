@@ -6,6 +6,7 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.params.InputConfiguration;
+import android.media.ImageReader;
 import android.os.Handler;
 import android.util.Log;
 
@@ -54,6 +55,8 @@ public class ReflectionHelper {
 
     //Methods
     public static Method createCustomCaptureSession = null;
+
+    public static Method nativeCreatePlanes = null;
 
     public ReflectionHelper() {
         //Vendor keys
@@ -124,6 +127,21 @@ public class ReflectionHelper {
 
     public void ignoreInputConfiguraionCheck() {
 
+        try {
+            Class imageReader = Class.forName("android.media.ImageReader");
+            Log.i("AlphaCamera", " Image reader class obtained");
+            try {
+                nativeCreatePlanes = imageReader.getDeclaredMethod("nativeCreatePlanes", int.class, int.class);
+                Log.i("AlphaCamera", " Method obtained");
+
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
         Class  cameraDeviceImpl = null;
 
         try {
@@ -167,29 +185,6 @@ public class ReflectionHelper {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-
-
-//        try {
-//            Field field = cameraDeviceImpl.getField("mAppNames");
-//
-//            if(field != null){
-//
-//                Log.i("AlphaCamera", "I have field");
-//
-//                field.setAccessible(true);
-//
-//                String[] myStringArray = {"com.android.camera", "com.wyroczen.alphacamera"};
-//                String[] objectInstance = new String[1];
-//
-//                String[] value = (String[]) field.get(objectInstance);
-//
-//                Log.i("AlphaCamera", " Value: " + value[0]);
-//
-//                //field.set(objetInstance, value);
-//            }
-//        } catch (NoSuchFieldException | IllegalAccessException e) {
-//            e.printStackTrace();
-//        }
     }
 
 
