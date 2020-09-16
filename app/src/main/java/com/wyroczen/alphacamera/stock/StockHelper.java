@@ -14,7 +14,7 @@ public class StockHelper {
         }
         if (byteArray != null && byteArray.length / 8 == 23) {
             builder.set(ReflectionHelper.CONTROL_DISTORTION_FPC_DATA, byteArray); //VendorTagHelper.setValueQuietly(builder, CaptureRequestVendorTags.CONTROL_DISTORTION_FPC_DATA, bArr);
-            Log.i("AlphaCamera Stock", "Dustortion data applied");
+            Log.i("AlphaCamera Stock", "Distortion data applied");
         }
     }
 

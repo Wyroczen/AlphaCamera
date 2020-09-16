@@ -10,7 +10,9 @@ import android.os.Handler;
 import android.util.Log;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.List;
 
 public class ReflectionHelper {
@@ -115,5 +117,80 @@ public class ReflectionHelper {
             e.printStackTrace();
         }
         createCustomCaptureSession.setAccessible(true);
+
+        //test
+        ignoreInputConfiguraionCheck();
     }
+
+    public void ignoreInputConfiguraionCheck() {
+
+        Class  cameraDeviceImpl = null;
+
+        try {
+            cameraDeviceImpl = Class.forName("android.hardware.camera2.impl.CameraDeviceImpl");
+
+            if(cameraDeviceImpl != null){
+                Log.i("AlphaCamera", "I have a class");
+
+                Field[] fields = cameraDeviceImpl.getDeclaredFields();
+                Log.i("AlphaCamera", " Number of fields: " + String.valueOf(fields.length));
+                for(Field field : fields){
+                    Log.i("AlphaCamera", field.getName());
+                }
+
+                Method[] methods = cameraDeviceImpl.getDeclaredMethods();
+                Log.i("AlphaCamera", " Number of methods: " + String.valueOf(methods.length));
+                for(Method method : methods){
+                    Log.i("AlphaCamera", method.getName());
+                }
+
+                Field[] fields2 = cameraDeviceImpl.getFields();
+                Log.i("AlphaCamera", " Number of fields: " + String.valueOf(fields2.length));
+                for(Field field : fields2){
+                    Log.i("AlphaCamera", field.getName());
+                }
+
+                Method checkInputConfiguration = null;
+                try {
+                    checkInputConfiguration = cameraDeviceImpl.getDeclaredMethod("checkInputConfiguration", InputConfiguration.class);
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                }
+                if(checkInputConfiguration != null){
+                    Log.i("AlphaCamera", "Method is not null!");}
+                else {
+                    Log.i("AlphaCamera", "Method is null!");
+                }
+            }
+
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+
+//        try {
+//            Field field = cameraDeviceImpl.getField("mAppNames");
+//
+//            if(field != null){
+//
+//                Log.i("AlphaCamera", "I have field");
+//
+//                field.setAccessible(true);
+//
+//                String[] myStringArray = {"com.android.camera", "com.wyroczen.alphacamera"};
+//                String[] objectInstance = new String[1];
+//
+//                String[] value = (String[]) field.get(objectInstance);
+//
+//                Log.i("AlphaCamera", " Value: " + value[0]);
+//
+//                //field.set(objetInstance, value);
+//            }
+//        } catch (NoSuchFieldException | IllegalAccessException e) {
+//            e.printStackTrace();
+//        }
+    }
+
+
 }

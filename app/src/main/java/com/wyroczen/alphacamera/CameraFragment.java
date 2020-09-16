@@ -131,7 +131,7 @@ public class CameraFragment extends Fragment
     /**
      * Tag for the {@link Log}.
      */
-    private static final String TAG = "CameraFragment";
+    private static final String TAG = "AlphaCamera - CameraFragment";
 
     /**
      * Camera state: Showing camera preview.
@@ -283,6 +283,13 @@ public class CameraFragment extends Fragment
 
         @Override
         public void onImageAvailable(ImageReader reader) {
+            //TODO EXIF
+//            try {
+//                //saveImageMetadata(mFile);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+
             mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile, chosenImageFormat, mCameraCharacteristics, mCaptureResult));
 
 //            //TODO EXIF TAGS LOCATION
@@ -298,6 +305,23 @@ public class CameraFragment extends Fragment
         }
 
     };
+
+//    private void saveImageMetadata(File file) throws IOException {
+//        double latitude = mapLocationListener.latitude;
+//        double longitude = mapLocationListener.longitude;
+//        ExifInterface exif = new ExifInterface(file.getCanonicalPath());
+//        Log.i(TAG,""+file.getAbsolutePath());
+//        //add Latitude to metadata
+//        Log.i("AlphaCamera"," Adding data to exif");
+//        exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, GPSparser.convert(latitude));
+//        exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, GPSparser.latitudeRef(latitude));
+//        exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, GPSparser.convert(longitude));
+//        exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, GPSparser.longitudeRef(longitude));
+//        exif.saveAttributes();
+//        Log.i(TAG, "" + latitude + "," + longitude);
+//        Log.i(TAG, "" + GPSparser.convert(latitude) + "," + GPSparser.longitudeRef(longitude));
+//        Log.i(TAG, "" + GPSparser.latitudeRef(latitude) + "," + GPSparser.longitudeRef(longitude));
+//    }
 
     /**
      * {@link CaptureRequest.Builder} for the camera preview

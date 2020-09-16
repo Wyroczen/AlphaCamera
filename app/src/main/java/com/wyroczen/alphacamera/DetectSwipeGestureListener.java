@@ -5,6 +5,8 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
+import java.util.Map;
+
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
@@ -17,6 +19,7 @@ public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureL
 
     private CameraActivity activityCamera = null;
     private CameraVideoActivity activityCameraVideo = null;
+    private MapsActivity activityMaps = null;
 
     public void setActivityCamera(CameraActivity cameraActivity) {
         this.activityCamera = cameraActivity;
@@ -26,13 +29,17 @@ public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureL
         this.activityCameraVideo = cameraVideoActivity;
     }
 
+    public void setActivityMaps(MapsActivity mapsActivity) {
+        this.activityMaps = mapsActivity;
+    }
+
     public CameraActivity getActivityCamera() {
         return this.activityCamera;
     }
 
-    public CameraVideoActivity getActivityCameraVideo() {
-        return this.activityCameraVideo;
-    }
+    public CameraVideoActivity getActivityCameraVideo() { return this.activityCameraVideo; }
+
+    public MapsActivity getActivityMaps() { return this.activityMaps; }
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
@@ -52,6 +59,12 @@ public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureL
                 }
             } else {
                 Log.i("AlphaCamera", "Swipe to right");
+
+                if (activityCamera != null) {
+                    Intent i = new Intent(activityCamera, MapsActivity.class);
+                    activityCamera.startActivity(i);
+                }
+
                 if (activityCameraVideo != null) {
                     Intent i = new Intent(activityCameraVideo, CameraActivity.class);
                     activityCameraVideo.startActivity(i);
@@ -77,7 +90,7 @@ public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureL
         if (activityCamera != null) {
             CameraFragment cameraFragment = (CameraFragment) activityCamera.getSupportFragmentManager().findFragmentById(R.id.container);
             Boolean tapToCapture = settingsUtils.readBooleanSettings(cameraFragment.getContext(), SettingsUtils.PREF_TAP_TO_CAPTURE_KEY);
-            if(tapToCapture)
+            if (tapToCapture)
                 cameraFragment.takePicture();
         }
         Log.i("AlphaCamera", "Single tap");

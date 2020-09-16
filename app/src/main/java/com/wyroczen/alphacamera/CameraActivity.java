@@ -11,6 +11,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GestureDetectorCompat;
 
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -37,6 +38,7 @@ public class CameraActivity extends AppCompatActivity {
 
         //Default settings saved into sharedPreferences file
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+
 
 //        FloatingActionButton fab = findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
