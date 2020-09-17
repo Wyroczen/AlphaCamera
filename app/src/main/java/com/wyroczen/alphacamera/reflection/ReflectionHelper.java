@@ -10,6 +10,8 @@ import android.media.ImageReader;
 import android.os.Handler;
 import android.util.Log;
 
+import com.wyroczen.alphacamera.stock.ReflectUtils;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -122,6 +124,9 @@ public class ReflectionHelper {
         createCustomCaptureSession.setAccessible(true);
 
         //test
+        String sPlatform = ((String) ReflectUtils.invokeStatic("android.os.SystemProperties", "get", new String[]{"ro.netflix.bsp_rev"}));
+        Log.i("AlphaCamera-reflection", "MTK PLATFORM: " + sPlatform);
+
         ignoreInputConfiguraionCheck();
     }
 

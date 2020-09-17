@@ -35,6 +35,7 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.BlackLevelPattern;
 import android.hardware.camera2.params.OutputConfiguration;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.location.Location;
 import android.media.ExifInterface;
 import android.media.Image;
 import android.media.ImageReader;
@@ -67,6 +68,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.wyroczen.alphacamera.metadata.ExifHelper;
 import com.wyroczen.alphacamera.reflection.ReflectionHelper;
 import com.wyroczen.alphacamera.stock.StockHelper;
 
@@ -293,6 +295,15 @@ public class CameraFragment extends Fragment
 //            } catch (IOException e) {
 //                e.printStackTrace();
 //            }
+
+//            String fileName = new SimpleDateFormat("yyyMMddHHhh").format(new Date()) + "_AlphaCamera";
+//            if (chosenImageFormat == ImageFormat.JPEG) {
+//                mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".jpg");
+//            } else if (chosenImageFormat == ImageFormat.RAW_SENSOR) {
+//                mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".dng");
+//            }
+
+
 
             mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile, chosenImageFormat, mCameraCharacteristics, mCaptureResult));
 
@@ -1299,6 +1310,7 @@ public class CameraFragment extends Fragment
             int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
             if (chosenImageFormat == ImageFormat.JPEG) {
                 captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
+                captureBuilder.set(CaptureRequest.JPEG_GPS_LOCATION, new Location(""));
             }
 
             CameraCaptureSession.CaptureCallback CaptureCallback
@@ -1410,6 +1422,7 @@ public class CameraFragment extends Fragment
         private final CaptureResult mCaptureResult;
 
         ImageSaver(Image image, File file, int format, CameraCharacteristics cameraCharacteristics, CaptureResult captureResult) {
+
             mImage = image;
             mFile = file;
             mImageFormat = format;
@@ -1445,6 +1458,7 @@ public class CameraFragment extends Fragment
                     e.printStackTrace();
                 } finally {
                     mImage.close();
+
                     if (null != output) {
                         try {
                             output.close();
@@ -1453,6 +1467,14 @@ public class CameraFragment extends Fragment
                         }
                     }
                 }
+
+                //Save metadata (GPS mainly) to exif
+                try {
+                    ExifHelper.saveMetaData(mFile, 52.394768, 16.846245);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
             } else if (mImageFormat == ImageFormat.RAW_SENSOR) {
                 DngCreator dngCreator = new DngCreator(mCameraCharacteristics, mCaptureResult);
                 FileOutputStream rawFileOutputStream = null;
