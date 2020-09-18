@@ -70,7 +70,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.wyroczen.alphacamera.location.GpsTracker;
 import com.wyroczen.alphacamera.metadata.ExifHelper;
 import com.wyroczen.alphacamera.reflection.ReflectionHelper;
 import com.wyroczen.alphacamera.stock.StockHelper;
@@ -113,8 +112,6 @@ public class CameraFragment extends Fragment
     private CameraCharacteristics mCameraCharacteristics;
     private SettingsUtils mSettingsUtils;
     //private CaptureResult mPreviewCaptureResult;
-
-    private GpsTracker gpsTracker;
 
     private MediaPlayer shutterMediaPlayer = null;
 
@@ -685,9 +682,9 @@ public class CameraFragment extends Fragment
         //mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
         String fileName = new SimpleDateFormat("yyyMMddHHhh").format(new Date()) + "_AlphaCamera";
         if (chosenImageFormat == ImageFormat.JPEG) {
-            mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".jpg");
+            mFile = new File(getActivity().getExternalFilesDir("Pictures"), fileName + ".jpg");
         } else if (chosenImageFormat == ImageFormat.RAW_SENSOR) {
-            mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".dng");
+            mFile = new File(getActivity().getExternalFilesDir("Pictures"), fileName + ".dng");
         }
         super.onStart();
 

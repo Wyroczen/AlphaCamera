@@ -13,7 +13,6 @@ import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
-import com.wyroczen.alphacamera.location.GpsTracker;
 import com.wyroczen.alphacamera.location.LocationService;
 
 import androidx.appcompat.app.AppCompatActivity;

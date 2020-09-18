@@ -11,6 +11,19 @@ public class ExifHelper {
 
     private static final String TAG = "AlphaCamera-Exif";
 
+    private static StringBuilder sb = new StringBuilder(20);
+
+    public static String[] getMetadata(File file) throws IOException {
+        ExifInterface exif = new ExifInterface(file.getCanonicalPath());
+        Log.i(TAG, "Path for getting exif data" + file.getCanonicalPath());
+        String latitude = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+        String longitude = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+        String latitudeRef = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
+        String longitudeRef = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
+        Log.i(TAG, "Readed exif data:" + longitude + longitudeRef + " " + latitude + latitudeRef);
+        return new String[]{convertDMStoDegree(latitude),convertDMStoDegree(longitude)};
+    }
+
     public static void saveMetaData(File file, double latitude, double longitude) throws IOException {
         Log.i(TAG,"Metadata Save" );
         ExifInterface exif = new ExifInterface(file.getCanonicalPath());
@@ -57,14 +70,23 @@ public class ExifHelper {
         latitude *= 60;
         latitude -= (minute * 60.0d);
         int second = (int) (latitude*1000.0d);
-        StringBuilder sb = new StringBuilder();
         sb.setLength(0);
         sb.append(degree);
         sb.append("/1,");
         sb.append(minute);
         sb.append("/1,");
         sb.append(second);
-        sb.append("/1000,");
+        sb.append("/1000");
+        Log.i(TAG," After conversion: "+sb.toString());
         return sb.toString();
+    }
+
+    synchronized public static String convertDMStoDegree(String dms) {
+        String[] values = dms.split(",");
+        String degree = values[0].split("/")[0];
+        String minute = values[1].split("/")[0];
+        String second = values[2].split("/")[0];
+        double degrees = Double.parseDouble(degree);
+        return degree;
     }
 }
