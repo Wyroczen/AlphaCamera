@@ -1,6 +1,6 @@
 package com.wyroczen.alphacamera.metadata;
 
-import android.media.ExifInterface;
+import androidx.exifinterface.media.ExifInterface;
 import android.util.Log;
 
 import java.io.File;
@@ -12,15 +12,14 @@ public class ExifHelper {
     private static final String TAG = "AlphaCamera-Exif";
 
     public static void saveMetaData(File file, double latitude, double longitude) throws IOException {
-        Log.i(TAG," Metadata Save " );
+        Log.i(TAG,"Metadata Save" );
         ExifInterface exif = new ExifInterface(file.getCanonicalPath());
         Log.i(TAG," File for exif: "+file.getAbsolutePath());
-        //add Latitude to metadata
         exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, convert(latitude));
         exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, latitudeRef(latitude));
         exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, convert(longitude));
         exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, longitudeRef(longitude));
-        exif.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, new String("Taken with AlphaCamera by Wyroczen"));
+        exif.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, "Captured with AlphaCamera by Wyroczen");
         exif.saveAttributes();
         Log.i(TAG, "" + latitude + "," + longitude);
         Log.i(TAG, "" + convert(latitude) + "," + longitudeRef(longitude));
@@ -49,7 +48,7 @@ public class ExifHelper {
      * @param latitude could be longitude.
      * @return
      */
-    synchronized public static final String convert(double latitude) {
+    synchronized public static String convert(double latitude) {
         latitude=Math.abs(latitude);
         int degree = (int) latitude;
         latitude *= 60;

@@ -36,6 +36,8 @@ import android.hardware.camera2.params.BlackLevelPattern;
 import android.hardware.camera2.params.OutputConfiguration;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.media.ExifInterface;
 import android.media.Image;
 import android.media.ImageReader;
@@ -68,6 +70,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.wyroczen.alphacamera.location.GpsTracker;
 import com.wyroczen.alphacamera.metadata.ExifHelper;
 import com.wyroczen.alphacamera.reflection.ReflectionHelper;
 import com.wyroczen.alphacamera.stock.StockHelper;
@@ -90,6 +93,8 @@ import java.util.concurrent.TimeUnit;
 
 import android.provider.Settings.System;
 
+import static android.content.Context.LOCATION_SERVICE;
+
 public class CameraFragment extends Fragment
         implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
@@ -108,6 +113,8 @@ public class CameraFragment extends Fragment
     private CameraCharacteristics mCameraCharacteristics;
     private SettingsUtils mSettingsUtils;
     //private CaptureResult mPreviewCaptureResult;
+
+    private GpsTracker gpsTracker;
 
     private MediaPlayer shutterMediaPlayer = null;
 
@@ -303,9 +310,9 @@ public class CameraFragment extends Fragment
 //                mFile = new File(getActivity().getExternalFilesDir(null), fileName + ".dng");
 //            }
 
-
-
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile, chosenImageFormat, mCameraCharacteristics, mCaptureResult));
+            //Location
+            //getLocation();
+            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile, chosenImageFormat, mCameraCharacteristics, mCaptureResult, ((CameraActivity) getActivity()).longitude, ((CameraActivity) getActivity()).latitude));
 
 //            //TODO EXIF TAGS LOCATION
 //            ExifInterface exif = null;
@@ -321,22 +328,6 @@ public class CameraFragment extends Fragment
 
     };
 
-//    private void saveImageMetadata(File file) throws IOException {
-//        double latitude = mapLocationListener.latitude;
-//        double longitude = mapLocationListener.longitude;
-//        ExifInterface exif = new ExifInterface(file.getCanonicalPath());
-//        Log.i(TAG,""+file.getAbsolutePath());
-//        //add Latitude to metadata
-//        Log.i("AlphaCamera"," Adding data to exif");
-//        exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, GPSparser.convert(latitude));
-//        exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, GPSparser.latitudeRef(latitude));
-//        exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, GPSparser.convert(longitude));
-//        exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, GPSparser.longitudeRef(longitude));
-//        exif.saveAttributes();
-//        Log.i(TAG, "" + latitude + "," + longitude);
-//        Log.i(TAG, "" + GPSparser.convert(latitude) + "," + GPSparser.longitudeRef(longitude));
-//        Log.i(TAG, "" + GPSparser.latitudeRef(latitude) + "," + GPSparser.longitudeRef(longitude));
-//    }
 
     /**
      * {@link CaptureRequest.Builder} for the camera preview
@@ -1310,7 +1301,7 @@ public class CameraFragment extends Fragment
             int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
             if (chosenImageFormat == ImageFormat.JPEG) {
                 captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
-                captureBuilder.set(CaptureRequest.JPEG_GPS_LOCATION, new Location(""));
+                //captureBuilder.set(CaptureRequest.JPEG_GPS_LOCATION, new Location(""));
             }
 
             CameraCaptureSession.CaptureCallback CaptureCallback
@@ -1403,8 +1394,22 @@ public class CameraFragment extends Fragment
         }
     }
 
+//    public double latitude;
+//    public double longitude;
+//    public void getLocation(){
+//        gpsTracker = new GpsTracker(getContext(), getActivity());
+//        if(gpsTracker.canGetLocation()){
+//            latitude = gpsTracker.getLatitude();
+//            longitude = gpsTracker.getLongitude();
+//            Log.i("AplhaCamera", " Latitude: " + String.valueOf(latitude));
+//            Log.i("AplhaCamera", " Longitude: " +String.valueOf(longitude));
+//        }else{
+//            gpsTracker.showSettingsAlert();
+//        }
+//    }
+
     /**
-     * Saves a JPEG {@link Image} into the specified {@link File}.
+     * Saves a JPEG or RAW {@link Image} into the specified {@link File}.
      */
     private static class ImageSaver implements Runnable {
 
@@ -1420,8 +1425,10 @@ public class CameraFragment extends Fragment
         private final int mImageFormat;
         private final CameraCharacteristics mCameraCharacteristics;
         private final CaptureResult mCaptureResult;
+        private double mLongitude;
+        private double mLatutude;
 
-        ImageSaver(Image image, File file, int format, CameraCharacteristics cameraCharacteristics, CaptureResult captureResult) {
+        ImageSaver(Image image, File file, int format, CameraCharacteristics cameraCharacteristics, CaptureResult captureResult, double longitude, double latitude) {
 
             mImage = image;
             mFile = file;
@@ -1431,6 +1438,9 @@ public class CameraFragment extends Fragment
 //            if(captureResult == null)
 //                Log.i("AlphaCamera", "captureResult null!");
             mCameraCharacteristics = cameraCharacteristics;
+
+            mLongitude = longitude;
+            mLatutude = latitude;
 
             //DISTORTION DATA
 //            Log.i("AlphaCamera", "Distortion data: ");
@@ -1470,7 +1480,8 @@ public class CameraFragment extends Fragment
 
                 //Save metadata (GPS mainly) to exif
                 try {
-                    ExifHelper.saveMetaData(mFile, 52.394768, 16.846245);
+
+                    ExifHelper.saveMetaData(mFile, mLatutude, mLongitude);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
