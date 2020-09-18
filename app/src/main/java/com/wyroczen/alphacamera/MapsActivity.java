@@ -73,7 +73,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 try {
                     String[] gpsData = ExifHelper.getMetadata(files[i]);
                     Log.i(TAG, "GPS DATA: " + gpsData[0] + " " + gpsData[1]);
-                    LatLng location = new LatLng(Double.parseDouble(gpsData[0]), Double.parseDouble(gpsData[0]));
+                    LatLng location = new LatLng(Double.parseDouble(gpsData[0]), Double.parseDouble(gpsData[1]));
                     mMap.addMarker(new MarkerOptions()
                             .position(location)
                             .title("Marker"));
