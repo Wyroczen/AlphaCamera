@@ -400,6 +400,8 @@ public class CameraVideoFragment extends Fragment
         int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
         int orientation = CameraUtil.getOrientation(rotation, upsideDown);
         mMediaRecorder.setOrientationHint(orientation);
+        Log.i("AlphaCamera-VidFrag", ((CameraVideoActivity) getActivity()).latitude + " " + ((CameraVideoActivity) getActivity()).longitude);
+        mMediaRecorder.setLocation(((CameraVideoActivity) getActivity()).latitude, ((CameraVideoActivity) getActivity()).longitude);
         mMediaRecorder.prepare();
     }
 
