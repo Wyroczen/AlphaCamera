@@ -20,8 +20,11 @@ public class ExifHelper {
         String longitude = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
         String latitudeRef = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
         String longitudeRef = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
+        String imageDesc = exif.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
+        //OVERRIDE LATITUDE AND LONGITUDE FROM IMAGE DESC //TODO FIX THIS
+        String[] imageDescArray = imageDesc.split(" ");
         Log.i(TAG, "Readed exif data:" + longitude + longitudeRef + " " + latitude + latitudeRef);
-        return new String[]{convertDMStoDegree(latitude),convertDMStoDegree(longitude)};
+        return new String[]{imageDescArray[1],imageDescArray[2], imageDescArray[0]};
     }
 
     public static void saveMetaData(File file, double latitude, double longitude) throws IOException {
@@ -32,7 +35,7 @@ public class ExifHelper {
         exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, latitudeRef(latitude));
         exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, convert(longitude));
         exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, longitudeRef(longitude));
-        exif.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, "Captured with AlphaCamera by Wyroczen");
+        exif.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION,  file.getName() + " " + latitude + " " + longitude);
         exif.saveAttributes();
         Log.i(TAG, "" + latitude + "," + longitude);
         Log.i(TAG, "" + convert(latitude) + "," + longitudeRef(longitude));
@@ -86,6 +89,11 @@ public class ExifHelper {
         String degree = values[0].split("/")[0];
         String minute = values[1].split("/")[0];
         String second = values[2].split("/")[0];
+        double ddegree = Double.parseDouble(degree);
+        double dsecond = Double.parseDouble(second)/1000;
+        double dminute = Double.parseDouble(minute)/60;
+        Log.i(TAG, "Dsecond: " + dsecond + " Dminute: " + dminute);
+        //double dminute = Double.parseDouble(minute)
         double degrees = Double.parseDouble(degree);
         return degree;
     }

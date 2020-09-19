@@ -130,10 +130,10 @@ public class ReflectionHelper {
         //String wyroczen = ((String) ReflectUtils.invokeStatic("android.os.SystemProperties", "get", new String[]{"wyroczen"}));
         //Log.i("AlphaCamera-reflection", "WYROCZEN: " + wyroczen);
 
-        ignoreInputConfiguraionCheck();
+        ignoreInputConfigurationCheck();
     }
 
-    public void ignoreInputConfiguraionCheck() {
+    public void ignoreInputConfigurationCheck() {
 
         try {
             Class imageReader = Class.forName("android.media.ImageReader");

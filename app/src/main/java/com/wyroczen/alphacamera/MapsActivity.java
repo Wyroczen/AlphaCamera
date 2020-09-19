@@ -2,6 +2,9 @@ package com.wyroczen.alphacamera;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +17,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.wyroczen.alphacamera.metadata.ExifHelper;
@@ -38,7 +42,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
 
         //Load photos from dir
-        //String path = Environment.getExternalStorageDirectory().toString()+"/Pictures"; //TODO change default photos saving dir
+        //String path = Environment.getExternalStorageDirectory().toString()+"/Pictures";
         String path = getExternalFilesDir(null).toString() + "/Pictures";
         Log.i(TAG, "Files Path: " + path);
         File directory = new File(path);
@@ -71,12 +75,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             for (int i = 0; i < files.length; i++) {
                 Log.i(TAG, "Files FileName:" + files[i].getName());
                 try {
+
+                    //Thumbnail
+                    int height = 50;
+                    int width = 50;
+                    Bitmap bitmap = BitmapFactory.decodeFile(files[i].getCanonicalPath());
+                    Bitmap smallMarker = Bitmap.createScaledBitmap(bitmap, width, height, false);
+                    //
+
                     String[] gpsData = ExifHelper.getMetadata(files[i]);
                     Log.i(TAG, "GPS DATA: " + gpsData[0] + " " + gpsData[1]);
                     LatLng location = new LatLng(Double.parseDouble(gpsData[0]), Double.parseDouble(gpsData[1]));
                     mMap.addMarker(new MarkerOptions()
                             .position(location)
-                            .title("Marker"));
+                            .title(gpsData[2])
+                            //.icon(BitmapDescriptorFactory.fromPath(files[i].getCanonicalPath())));
+                            .icon(BitmapDescriptorFactory.fromBitmap(smallMarker)));
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
                 } catch (IOException e) {
                     e.printStackTrace();
