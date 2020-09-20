@@ -400,8 +400,13 @@ public class CameraVideoFragment extends Fragment
         int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
         int orientation = CameraUtil.getOrientation(rotation, upsideDown);
         mMediaRecorder.setOrientationHint(orientation);
-        Log.i("AlphaCamera-VidFrag", ((CameraVideoActivity) getActivity()).latitude + " " + ((CameraVideoActivity) getActivity()).longitude);
-        mMediaRecorder.setLocation(((CameraVideoActivity) getActivity()).latitude, ((CameraVideoActivity) getActivity()).longitude);
+        Log.i("AlphaCamera-VidFrag", " Lat: " + ((CameraVideoActivity) getActivity()).latitude + " Lng: " + ((CameraVideoActivity) getActivity()).longitude);
+        Log.i("AlphaCamera-VidFrag", " Lat: " + getActivity().getIntent().getStringExtra("LATITUDE") + " Lng: " + getActivity().getIntent().getStringExtra("LONGITUDE"));
+        //TODO LOCATION SERVICE FROM CAMERA VIDEO ACTIVITY WAS TOO SLOW TO GIVE LOCATION DATA
+        float latitude = Float.parseFloat(getActivity().getIntent().getStringExtra("LATITUDE"));
+        float longitude = Float.parseFloat(getActivity().getIntent().getStringExtra("LONGITUDE"));
+        mMediaRecorder.setLocation(latitude,longitude);
+        //mMediaRecorder.setLocation(((CameraVideoActivity) getActivity()).latitude, ((CameraVideoActivity) getActivity()).longitude);
         mMediaRecorder.prepare();
     }
 

@@ -5,6 +5,7 @@ import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
+import android.hardware.camera2.params.BlackLevelPattern;
 import android.hardware.camera2.params.InputConfiguration;
 import android.media.ImageReader;
 import android.os.Handler;
@@ -12,10 +13,14 @@ import android.util.Log;
 
 import com.wyroczen.alphacamera.stock.ReflectUtils;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ReflectionHelper {
@@ -133,22 +138,53 @@ public class ReflectionHelper {
         ignoreInputConfigurationCheck();
     }
 
-    public void ignoreInputConfigurationCheck() {
 
-        try {
-            Class imageReader = Class.forName("android.media.ImageReader");
-            Log.i("AlphaCamera", " Image reader class obtained");
-            try {
-                nativeCreatePlanes = imageReader.getDeclaredMethod("nativeCreatePlanes", int.class, int.class);
-                Log.i("AlphaCamera", " Method obtained");
+    public void getParameterNames(Method method) {
+        Parameter[] parameters = method.getParameters();
+        List<String> parameterNames = new ArrayList<>();
 
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
+        for (Parameter parameter : parameters) {
+            if (!parameter.isNamePresent()) {
+                throw new IllegalArgumentException("Parameter names are not present!");
             }
 
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            String parameterName = parameter.getName();
+            parameterNames.add(parameterName);
         }
+        for(String parameter : parameterNames){
+            Log.i("AlphaCamera-ref", parameter);
+        }
+    }
+
+    public void ignoreInputConfigurationCheck() {
+
+        ReflectionHelperKt reflectionHelperKt = new ReflectionHelperKt();
+        reflectionHelperKt.zoranBypass();
+
+        //Method getDeclaredMethod = Class.class.getDeclaredMethod("getDeclaredMethod", String.class, Class<?>)
+        //Class vmRuntimeClass = (Class) forName.invoke(null, "dalvik.system.VMRuntime");
+        //Method getRuntime = vmRuntimeClass.getDeclaredMethod.invoke("getRuntime", null);
+        //Method sh = getDeclaredMethod.invoke(vmRuntimeClass, "setHiddenApiExemptions", arrayOf(arrayOf<String>().class));
+        //val vmRuntime = getRuntime.invoke(null)
+        //fun init()
+        //{
+        //    sh.invoke(vmRuntime, arrayOf("L"))
+        //}
+
+//        try {
+//            Class imageReader = Class.forName("android.media.ImageReader");
+//            Log.i("AlphaCamera", " Image reader class obtained");
+//            try {
+//                nativeCreatePlanes = imageReader.getDeclaredMethod("nativeCreatePlanes", int.class, int.class);
+//                Log.i("AlphaCamera", " Method obtained");
+//
+//            } catch (NoSuchMethodException e) {
+//                e.printStackTrace();
+//            }
+//
+//        } catch (ClassNotFoundException e) {
+//            e.printStackTrace();
+//        }
 
         Class  cameraDeviceImpl = null;
 
@@ -179,6 +215,19 @@ public class ReflectionHelper {
                 Method checkInputConfiguration = null;
                 try {
                     checkInputConfiguration = cameraDeviceImpl.getDeclaredMethod("checkInputConfiguration", InputConfiguration.class);
+
+                    // constructors
+                    Constructor[] ct = cameraDeviceImpl.getDeclaredConstructors();
+                    for(int i = 0; i < ct.length; i++) {
+                        Log.i("AlphaCamera-Reflection: ", "Constructor found: " + ct[i].toString());
+                    }
+
+                    //Field mAppNames = cameraDeviceImpl.getDeclaredField("mAppNames");
+                    //Log.i("AlphaCamera-reflection", "Field is there");
+                    //mAppNames.setAccessible(true);
+                    //String[] mAppNamesNew = new String[]{"com.android.camera","com.wyroczen.alphacamera"};
+                    //mAppNames.set(cameraDeviceImpl, mAppNamesNew);
+                    //Log.i("AlphaCamera-reflection", "Field changed");
                 } catch (NoSuchMethodException e) {
                     e.printStackTrace();
                 }

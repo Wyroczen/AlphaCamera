@@ -14,14 +14,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
-import android.hardware.HardwareBuffer;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -35,15 +32,10 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.BlackLevelPattern;
 import android.hardware.camera2.params.OutputConfiguration;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.media.ExifInterface;
 import android.media.Image;
 import android.media.ImageReader;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 
@@ -65,14 +57,12 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.wyroczen.alphacamera.metadata.ExifHelper;
 import com.wyroczen.alphacamera.reflection.ReflectionHelper;
-import com.wyroczen.alphacamera.stock.StockHelper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -91,8 +81,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import android.provider.Settings.System;
-
-import static android.content.Context.LOCATION_SERVICE;
 
 public class CameraFragment extends Fragment
         implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
@@ -1018,7 +1006,7 @@ public class CameraFragment extends Fragment
                 OutputConfiguration outputConfiguration = new OutputConfiguration(outputSurface);
                 outputConfigurationList.add(outputConfiguration);
             }
-            ReflectionHelper.createCustomCaptureSession.invoke(mCameraDevice, null, outputConfigurationList, 32778, new CameraCaptureSession.StateCallback() { //32778 TODO night mode
+            ReflectionHelper.createCustomCaptureSession.invoke(mCameraDevice, null, outputConfigurationList, 0, new CameraCaptureSession.StateCallback() { //32778 TODO night mode
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                             // The camera is already closed
@@ -1250,7 +1238,7 @@ public class CameraFragment extends Fragment
                 captureBuilder.addTarget(mImageReader.getSurface());
 
                 //Blacklevel
-
+                //BlackLevelPattern blevel = mCameraCharacteristics.get(CameraCharacteristics.SENSOR_BLACK_LEVEL_PATTERN);
 
                 //TEST MTK
                 if (mCameraId.equals("0")) {

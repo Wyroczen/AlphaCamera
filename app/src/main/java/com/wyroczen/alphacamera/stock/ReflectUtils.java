@@ -24,7 +24,7 @@ public class ReflectUtils {
         }
     }
 
-    private static Method findMethod(Class<? extends Object> cls, String str, Object[] objArr) {
+    public static Method findMethod(Class<? extends Object> cls, String str, Object[] objArr) {
         for (Method method : cls.getDeclaredMethods()) {
             if (method.getName().equals(str) && matches(method.getParameterTypes(), objArr)) {
                 return method;

@@ -20,7 +20,7 @@ import android.view.View;
 
 public class CameraVideoActivity extends AppCompatActivity {
 
-    private final String TAG = "AlphaCamera-CamVidAvtivity";
+    private final String TAG = "AlphaCamera-CamVidActivity";
     private GestureDetectorCompat gestureDetectorCompat = null;
     private BroadcastReceiver receiver;
     public float latitude;

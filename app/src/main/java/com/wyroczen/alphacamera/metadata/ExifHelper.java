@@ -1,9 +1,12 @@
 package com.wyroczen.alphacamera.metadata;
 
 import androidx.exifinterface.media.ExifInterface;
+
+import android.media.MediaMetadataRetriever;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 
@@ -15,7 +18,7 @@ public class ExifHelper {
 
     public static String[] getMetadata(File file) throws IOException {
         ExifInterface exif = new ExifInterface(file.getCanonicalPath());
-        Log.i(TAG, "Path for getting exif data" + file.getCanonicalPath());
+        Log.i(TAG, "Path for getting exif data: " + file.getCanonicalPath());
         String latitude = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
         String longitude = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
         String latitudeRef = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
@@ -24,18 +27,35 @@ public class ExifHelper {
         //OVERRIDE LATITUDE AND LONGITUDE FROM IMAGE DESC //TODO FIX THIS
         String[] imageDescArray = imageDesc.split(" ");
         Log.i(TAG, "Readed exif data:" + longitude + longitudeRef + " " + latitude + latitudeRef);
-        return new String[]{imageDescArray[1],imageDescArray[2], imageDescArray[0]};
+        return new String[]{imageDescArray[1], imageDescArray[2], imageDescArray[0]};
+    }
+
+    public static String[] getVideoMetadata(File file) throws IOException {
+        //Added in API level 10
+        Log.i(TAG, "File path for video exif: " + file.getCanonicalPath());
+        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+
+        retriever.setDataSource(file.getCanonicalPath());
+        String location = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_LOCATION);
+        int index = location.lastIndexOf('-');
+        if (index == -1) {
+            index = location.lastIndexOf('+');
+        }
+        String latitude = location.substring(0, index - 1);
+        String longitude = location.substring(index, location.length()-1);
+        Log.i(TAG, "Readed video exif data:" + location + " Lat: " + latitude + " Lng: " + longitude);
+        return new String[]{latitude, longitude};
     }
 
     public static void saveMetaData(File file, double latitude, double longitude) throws IOException {
-        Log.i(TAG,"Metadata Save" );
+        Log.i(TAG, "Metadata Save");
         ExifInterface exif = new ExifInterface(file.getCanonicalPath());
-        Log.i(TAG," File for exif: "+file.getAbsolutePath());
+        Log.i(TAG, " File for exif: " + file.getAbsolutePath());
         exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, convert(latitude));
         exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, latitudeRef(latitude));
         exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, convert(longitude));
         exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, longitudeRef(longitude));
-        exif.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION,  file.getName() + " " + latitude + " " + longitude);
+        exif.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, file.getName() + " " + latitude + " " + longitude);
         exif.saveAttributes();
         Log.i(TAG, "" + latitude + "," + longitude);
         Log.i(TAG, "" + convert(latitude) + "," + longitudeRef(longitude));
@@ -44,35 +64,37 @@ public class ExifHelper {
 
     /**
      * returns ref for latitude which is S or N.
+     *
      * @param latitude
      * @return S or N
      */
     public static String latitudeRef(double latitude) {
-        return latitude<0.0d?"S":"N";
+        return latitude < 0.0d ? "S" : "N";
     }
 
 
     public static String longitudeRef(double longitude) {
-        return longitude<0.0d?"W":"E";
+        return longitude < 0.0d ? "W" : "E";
     }
 
     /**
      * convert latitude into DMS (degree minute second) format. For instance<br/>
      * -79.948862 becomes<br/>
-     *  79/1,56/1,55903/1000<br/>
+     * 79/1,56/1,55903/1000<br/>
      * It works for latitude and longitude<br/>
+     *
      * @param latitude could be longitude.
      * @return
      */
     synchronized public static String convert(double latitude) {
-        latitude=Math.abs(latitude);
+        latitude = Math.abs(latitude);
         int degree = (int) latitude;
         latitude *= 60;
         latitude -= (degree * 60.0d);
         int minute = (int) latitude;
         latitude *= 60;
         latitude -= (minute * 60.0d);
-        int second = (int) (latitude*1000.0d);
+        int second = (int) (latitude * 1000.0d);
         sb.setLength(0);
         sb.append(degree);
         sb.append("/1,");
@@ -80,7 +102,7 @@ public class ExifHelper {
         sb.append("/1,");
         sb.append(second);
         sb.append("/1000");
-        Log.i(TAG," After conversion: "+sb.toString());
+        Log.i(TAG, " After conversion: " + sb.toString());
         return sb.toString();
     }
 
@@ -90,8 +112,8 @@ public class ExifHelper {
         String minute = values[1].split("/")[0];
         String second = values[2].split("/")[0];
         double ddegree = Double.parseDouble(degree);
-        double dsecond = Double.parseDouble(second)/1000;
-        double dminute = Double.parseDouble(minute)/60;
+        double dsecond = Double.parseDouble(second) / 1000;
+        double dminute = Double.parseDouble(minute) / 60;
         Log.i(TAG, "Dsecond: " + dsecond + " Dminute: " + dminute);
         //double dminute = Double.parseDouble(minute)
         double degrees = Double.parseDouble(degree);

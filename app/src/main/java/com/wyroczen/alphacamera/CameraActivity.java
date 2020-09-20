@@ -13,6 +13,8 @@ import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.wyroczen.alphacamera.asm.ASMHelper;
+import com.wyroczen.alphacamera.jni.NativeLibJNI;
 import com.wyroczen.alphacamera.location.LocationService;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,9 +31,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+
 public class CameraActivity extends AppCompatActivity {
 
-    private final String TAG = "AlphaCamera-CamAvtivity";
+    private final String TAG = "AlphaCamera-CamActivity";
     private GestureDetectorCompat gestureDetectorCompat = null;
     private BroadcastReceiver receiver;
     public double latitude;
@@ -90,6 +95,14 @@ public class CameraActivity extends AppCompatActivity {
                     .replace(R.id.container, CameraFragment.newInstance())
                     .commit();
         }
+
+        //TESTS FOR NATIVE LIB AND ASM
+        NativeLibJNI nlj = new NativeLibJNI();
+        Log.i(TAG, "Welcome message: " + nlj.getWelcome());
+
+        ASMHelper asmHelper = new ASMHelper();
+        Log.i(TAG, "ASM: ");
+        //asmHelper.doSomething();
 
     }
 

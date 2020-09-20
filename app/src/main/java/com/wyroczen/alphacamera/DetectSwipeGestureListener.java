@@ -61,6 +61,8 @@ public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureL
 
                     Intent i = new Intent(activityCamera, CameraVideoActivity.class);
                     i.putExtra("CAMERA_ID", cameraId);
+                    i.putExtra("LATITUDE",  String.valueOf(activityCamera.latitude));
+                    i.putExtra("LONGITUDE", String.valueOf(activityCamera.longitude));
                     activityCamera.startActivity(i);
                 }
             } else {
