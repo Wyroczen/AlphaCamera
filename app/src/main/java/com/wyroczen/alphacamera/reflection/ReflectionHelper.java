@@ -156,10 +156,72 @@ public class ReflectionHelper {
         }
     }
 
+    public static void native_set(String key, String val){
+        try {
+            Class SystemProperties = Class.forName("android.os.SystemProperties");
+            Method set = SystemProperties.getDeclaredMethod("set",String.class,String.class);
+            set.setAccessible(true);
+            set.invoke(null,key,val);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     public void ignoreInputConfigurationCheck() {
 
         ReflectionHelperKt reflectionHelperKt = new ReflectionHelperKt();
         reflectionHelperKt.zoranBypass();
+
+        Class actThread = null;
+        try {
+            actThread = Class.forName("android.app.ActivityThread");
+            Log.i("AlphaCamera-Reflection", "android.app.ActivityThread!");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        Method getCur = null;
+        try {
+            getCur = actThread.getDeclaredMethod("currentActivityThread");
+            Log.i("AlphaCamera-Reflection", "currentActivityThread!");
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        getCur.setAccessible(true);
+        Object curThread = null;
+        try {
+            curThread = getCur.invoke(null);
+            Log.i("AlphaCamera-Reflection", "curThread saved!");
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        Field isSystem = null;
+        try {
+            isSystem = curThread.getClass().getDeclaredField("mSystemThread");
+            isSystem.setAccessible(true);
+            Log.i("AlphaCamera-Reflection", "Is system? " + isSystem);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+        try {
+            isSystem.set(curThread,true);
+            Log.i("AlphaCamera-Reflection", "We are now system thread!");
+
+            //native set
+            native_set("wyroczen", "success");
+
+        } catch (IllegalAccessException e) {
+            Log.i("AlphaCamera-Reflection", e.toString());
+            e.printStackTrace();
+        }
 
         //Method getDeclaredMethod = Class.class.getDeclaredMethod("getDeclaredMethod", String.class, Class<?>)
         //Class vmRuntimeClass = (Class) forName.invoke(null, "dalvik.system.VMRuntime");

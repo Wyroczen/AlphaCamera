@@ -63,6 +63,7 @@ import android.widget.Toast;
 
 import com.wyroczen.alphacamera.metadata.ExifHelper;
 import com.wyroczen.alphacamera.reflection.ReflectionHelper;
+import com.wyroczen.alphacamera.stock.ReflectUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -313,6 +314,54 @@ public class CameraFragment extends Fragment
 
     };
 
+    private static final long LOCK_FOCUS_DELAY_ON_FOCUSED = 5000;
+    private static final long LOCK_FOCUS_DELAY_ON_UNFOCUSED = 1000;
+
+    private Integer mLastAfState = null;
+    private Handler mUiHandler = new Handler(); // UI handler
+    private Runnable mLockAutoFocusRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            lockAutoFocus();
+        }
+    };
+
+    public void lockAutoFocus() {
+        try {
+            // This is how to tell the camera to lock focus.
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+            CaptureRequest captureRequest = mPreviewRequestBuilder.build();
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, null); // prevent CONTROL_AF_TRIGGER_START from calling over and over again
+            mCaptureSession.capture(captureRequest, mCaptureCallback, mBackgroundHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private float getMinimumFocusDistance() {
+        if (mCameraId == null)
+            return 0;
+
+        Float minimumLens = null;
+        try {
+            CameraManager manager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
+            CameraCharacteristics c = manager.getCameraCharacteristics(mCameraId);
+            minimumLens = c.get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
+        } catch (Exception e) {
+            Log.e(TAG, "isHardwareLevelSupported Error", e);
+        }
+        if (minimumLens != null)
+            return minimumLens;
+        return 0;
+    }
+
+    private boolean isAutoFocusSupported() {
+        Log.i(TAG, " Is autoficus supported: " +  getMinimumFocusDistance());
+        return getMinimumFocusDistance() > 0;
+    }
+
+
 
     /**
      * {@link CaptureRequest.Builder} for the camera preview
@@ -356,6 +405,43 @@ public class CameraFragment extends Fragment
             switch (mState) {
                 case STATE_PREVIEW: {
                     // We have nothing to do when the camera preview is working normally.
+                    // TODO: handle auto focus
+                    Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
+                    if (afState != null && !afState.equals(mLastAfState)) {
+                        switch (afState) {
+                            case CaptureResult.CONTROL_AF_STATE_INACTIVE:
+                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_INACTIVE");
+                                lockAutoFocus();
+                                break;
+                            case CaptureResult.CONTROL_AF_STATE_ACTIVE_SCAN:
+                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_ACTIVE_SCAN");
+                                break;
+                            case CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED:
+                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED");
+                                mUiHandler.removeCallbacks(mLockAutoFocusRunnable);
+                                mUiHandler.postDelayed(mLockAutoFocusRunnable, LOCK_FOCUS_DELAY_ON_FOCUSED);
+                                break;
+                            case CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED:
+                                mUiHandler.removeCallbacks(mLockAutoFocusRunnable);
+                                mUiHandler.postDelayed(mLockAutoFocusRunnable, LOCK_FOCUS_DELAY_ON_UNFOCUSED);
+                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED");
+                                break;
+                            case CaptureResult.CONTROL_AF_STATE_PASSIVE_UNFOCUSED:
+                                mUiHandler.removeCallbacks(mLockAutoFocusRunnable);
+                                //mUiHandler.postDelayed(mLockAutoFocusRunnable, LOCK_FOCUS_DELAY_ON_UNFOCUSED);
+                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_PASSIVE_UNFOCUSED");
+                                break;
+                            case CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN:
+                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN");
+                                break;
+                            case CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED:
+                                mUiHandler.removeCallbacks(mLockAutoFocusRunnable);
+                                //mUiHandler.postDelayed(mLockAutoFocusRunnable, LOCK_FOCUS_DELAY_ON_FOCUSED);
+                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED");
+                                break;
+                        }
+                    }
+                    mLastAfState = afState;
                     break;
                 }
                 case STATE_WAITING_LOCK: {
@@ -652,7 +738,7 @@ public class CameraFragment extends Fragment
     public void onStart() {
 
         //Camera shutter sound
-        shutterMediaPlayer = MediaPlayer.create(getActivity(),R.raw.shutter_sound);
+        shutterMediaPlayer = MediaPlayer.create(getActivity(), R.raw.shutter_sound);
 
         //Settings:
         Boolean rawEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_ENABLE_RAW_KEY);
@@ -672,7 +758,7 @@ public class CameraFragment extends Fragment
         if (chosenImageFormat == ImageFormat.JPEG) {
             mFile = new File(getActivity().getExternalFilesDir("Pictures"), fileName + ".jpg");
         } else if (chosenImageFormat == ImageFormat.RAW_SENSOR) {
-            mFile = new File(getActivity().getExternalFilesDir("Pictures"), fileName + ".dng");
+            mFile = new File(getActivity().getExternalFilesDir("RAW"), fileName + ".dng");
         }
         super.onStart();
 
@@ -726,7 +812,7 @@ public class CameraFragment extends Fragment
                 ErrorDialog.newInstance(getString(R.string.request_permission))
                         .show(getChildFragmentManager(), FRAGMENT_DIALOG);
             }
-        } else if(requestCode == REQUEST_FINE_LOCATION_PERMISSION){
+        } else if (requestCode == REQUEST_FINE_LOCATION_PERMISSION) {
             if (grantResults.length != 1 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 ErrorDialog.newInstance(getString(R.string.request_fine_location_permission))
                         .show(getChildFragmentManager(), FRAGMENT_DIALOG);
@@ -736,8 +822,8 @@ public class CameraFragment extends Fragment
         }
     }
 
-    public String getmCameraId(){
-       return mCameraId;
+    public String getmCameraId() {
+        return mCameraId;
     }
 
     /**
@@ -1220,8 +1306,14 @@ public class CameraFragment extends Fragment
                 captureBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, MANUAL_EXP_VALUE); //1/2S 500000000L
                 captureBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, MANUAL_ISO_VALUE);
 
-                captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                //captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                //        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                if (isAutoFocusSupported())
+                    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                            CaptureRequest.CONTROL_AF_MODE_AUTO);
+                else
+                    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                            CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
 
                 if (mCameraId.equals("0") && MANUAL_ISO_VALUE < 400) {
                     captureBuilder.set(ReflectionHelper.MTK_REMOSAIC_ENABLE_KEY, ReflectionHelper.CONTROL_REMOSAIC_HINT_ON);
@@ -1267,16 +1359,22 @@ public class CameraFragment extends Fragment
                     if (mFrontMirror) {
                         captureBuilder.set(ReflectionHelper.FRONT_MIRROR, true);
                         captureBuilder.set(ReflectionHelper.SANPSHOT_FLIP_MODE, ReflectionHelper.VALUE_SANPSHOT_FLIP_MODE_ON);
-                    } else if(!mFrontMirror) {
+                    } else if (!mFrontMirror) {
                         captureBuilder.set(ReflectionHelper.FRONT_MIRROR, true);
                         captureBuilder.set(ReflectionHelper.SANPSHOT_FLIP_MODE, ReflectionHelper.VALUE_SANPSHOT_FLIP_MODE_OFF);
                     }
                 }
-                
+
 
                 // Use the same AE and AF modes as the preview.
-                captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                //captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                //        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                if (isAutoFocusSupported())
+                    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                            CaptureRequest.CONTROL_AF_MODE_AUTO);
+                else
+                    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                            CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                 //captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                 //        CaptureRequest.CONTROL_AF_MODE_AUTO);
                 setAutoFlash(captureBuilder);
@@ -1341,6 +1439,9 @@ public class CameraFragment extends Fragment
             mState = STATE_PREVIEW;
             mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback,
                     mBackgroundHandler);
+            //try {
+            //    mCaptureSession.capture(mPreviewRequestBuilder.build(), mPreCaptureCallback, mBackgroundHandler);
+            //} catch (Exception e) {e.printStackTrace();}
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -1350,7 +1451,7 @@ public class CameraFragment extends Fragment
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.capture_button: {
-                if(shutterMediaPlayer != null && mShutterSoundEnabled)
+                if (shutterMediaPlayer != null && mShutterSoundEnabled)
                     shutterMediaPlayer.start();
                 takePicture();
                 break;
