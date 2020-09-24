@@ -151,17 +151,17 @@ public class ReflectionHelper {
             String parameterName = parameter.getName();
             parameterNames.add(parameterName);
         }
-        for(String parameter : parameterNames){
+        for (String parameter : parameterNames) {
             Log.i("AlphaCamera-ref", parameter);
         }
     }
 
-    public static void native_set(String key, String val){
+    public static void native_set(String key, String val) {
         try {
             Class SystemProperties = Class.forName("android.os.SystemProperties");
-            Method set = SystemProperties.getDeclaredMethod("set",String.class,String.class);
+            Method set = SystemProperties.getDeclaredMethod("set", String.class, String.class);
             set.setAccessible(true);
-            set.invoke(null,key,val);
+            set.invoke(null, key, val);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
@@ -212,7 +212,7 @@ public class ReflectionHelper {
             e.printStackTrace();
         }
         try {
-            isSystem.set(curThread,true);
+            isSystem.set(curThread, true);
             Log.i("AlphaCamera-Reflection", "We are now system thread!");
 
             //native set
@@ -248,30 +248,30 @@ public class ReflectionHelper {
 //            e.printStackTrace();
 //        }
 
-        Class  cameraDeviceImpl = null;
+        Class cameraDeviceImpl = null;
 
         try {
             cameraDeviceImpl = Class.forName("android.hardware.camera2.impl.CameraDeviceImpl");
 
-            if(cameraDeviceImpl != null){
-                Log.i("AlphaCamera", "I have a class");
+            if (cameraDeviceImpl != null) {
+                //Log.i("AlphaCamera", "I have a class");
 
                 Field[] fields = cameraDeviceImpl.getDeclaredFields();
-                Log.i("AlphaCamera", " Number of fields: " + String.valueOf(fields.length));
-                for(Field field : fields){
-                    Log.i("AlphaCamera", field.getName());
+                //Log.i("AlphaCamera", " Number of fields: " + String.valueOf(fields.length));
+                for (Field field : fields) {
+                    //Log.i("AlphaCamera", field.getName());
                 }
 
                 Method[] methods = cameraDeviceImpl.getDeclaredMethods();
-                Log.i("AlphaCamera", " Number of methods: " + String.valueOf(methods.length));
-                for(Method method : methods){
-                    Log.i("AlphaCamera", method.getName());
+                //Log.i("AlphaCamera", " Number of methods: " + String.valueOf(methods.length));
+                for (Method method : methods) {
+                    //Log.i("AlphaCamera", method.getName());
                 }
 
                 Field[] fields2 = cameraDeviceImpl.getFields();
-                Log.i("AlphaCamera", " Number of fields: " + String.valueOf(fields2.length));
-                for(Field field : fields2){
-                    Log.i("AlphaCamera", field.getName());
+                //Log.i("AlphaCamera", " Number of fields: " + String.valueOf(fields2.length));
+                for (Field field : fields2) {
+                    //Log.i("AlphaCamera", field.getName());
                 }
 
                 Method checkInputConfiguration = null;
@@ -280,8 +280,8 @@ public class ReflectionHelper {
 
                     // constructors
                     Constructor[] ct = cameraDeviceImpl.getDeclaredConstructors();
-                    for(int i = 0; i < ct.length; i++) {
-                        Log.i("AlphaCamera-Reflection: ", "Constructor found: " + ct[i].toString());
+                    for (int i = 0; i < ct.length; i++) {
+                        //Log.i("AlphaCamera-Reflection: ", "Constructor found: " + ct[i].toString());
                     }
 
                     //Field mAppNames = cameraDeviceImpl.getDeclaredField("mAppNames");
@@ -293,10 +293,10 @@ public class ReflectionHelper {
                 } catch (NoSuchMethodException e) {
                     e.printStackTrace();
                 }
-                if(checkInputConfiguration != null){
-                    Log.i("AlphaCamera", "Method is not null!");}
-                else {
-                    Log.i("AlphaCamera", "Method is null!");
+                if (checkInputConfiguration != null) {
+                    //Log.i("AlphaCamera", "Method is not null!");
+                } else {
+                    //Log.i("AlphaCamera", "Method is null!");
                 }
             }
 

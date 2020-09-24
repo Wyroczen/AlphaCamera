@@ -117,6 +117,9 @@ public class CameraFragment extends Fragment
     public Integer MANUAL_ISO_VALUE = 100;
     public Long MANUAL_EXP_VALUE = 100000L;
 
+    private final String[] exposureEntries = new String[]{"1/1000","1/500","1/250","1/125","1/60","1/30","1/15","1/8","1/4","1/2","1","2","4","8","16","32"};
+    private final Long[] exposureValues = new Long[]{1000000L,2000000L,4000000L,8000000L,16666666L,32333333L,64666666L,125000000L,250000000L,500000000L,1000000000L,2000000000L,4000000000L,8000000000L,16000000000L,32000000000L};
+
     private TextView isoValueTextView;
     private TextView exposureValueTextView;
 
@@ -331,9 +334,18 @@ public class CameraFragment extends Fragment
         try {
             // This is how to tell the camera to lock focus.
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+
+            //TEST AF FIX
+            //mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO);
+            //
+
             CaptureRequest captureRequest = mPreviewRequestBuilder.build();
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, null); // prevent CONTROL_AF_TRIGGER_START from calling over and over again
+            //mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, null); // prevent CONTROL_AF_TRIGGER_START from calling over and over again
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_IDLE);
+
             mCaptureSession.capture(captureRequest, mCaptureCallback, mBackgroundHandler);
+            //Test:
+            //mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -357,7 +369,7 @@ public class CameraFragment extends Fragment
     }
 
     private boolean isAutoFocusSupported() {
-        Log.i(TAG, " Is autoficus supported: " +  getMinimumFocusDistance());
+        Log.i(TAG, " Is autofocus supported: " +  getMinimumFocusDistance());
         return getMinimumFocusDistance() > 0;
     }
 
@@ -406,42 +418,42 @@ public class CameraFragment extends Fragment
                 case STATE_PREVIEW: {
                     // We have nothing to do when the camera preview is working normally.
                     // TODO: handle auto focus
-                    Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
-                    if (afState != null && !afState.equals(mLastAfState)) {
-                        switch (afState) {
-                            case CaptureResult.CONTROL_AF_STATE_INACTIVE:
-                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_INACTIVE");
-                                lockAutoFocus();
-                                break;
-                            case CaptureResult.CONTROL_AF_STATE_ACTIVE_SCAN:
-                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_ACTIVE_SCAN");
-                                break;
-                            case CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED:
-                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED");
-                                mUiHandler.removeCallbacks(mLockAutoFocusRunnable);
-                                mUiHandler.postDelayed(mLockAutoFocusRunnable, LOCK_FOCUS_DELAY_ON_FOCUSED);
-                                break;
-                            case CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED:
-                                mUiHandler.removeCallbacks(mLockAutoFocusRunnable);
-                                mUiHandler.postDelayed(mLockAutoFocusRunnable, LOCK_FOCUS_DELAY_ON_UNFOCUSED);
-                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED");
-                                break;
-                            case CaptureResult.CONTROL_AF_STATE_PASSIVE_UNFOCUSED:
-                                mUiHandler.removeCallbacks(mLockAutoFocusRunnable);
-                                //mUiHandler.postDelayed(mLockAutoFocusRunnable, LOCK_FOCUS_DELAY_ON_UNFOCUSED);
-                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_PASSIVE_UNFOCUSED");
-                                break;
-                            case CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN:
-                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN");
-                                break;
-                            case CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED:
-                                mUiHandler.removeCallbacks(mLockAutoFocusRunnable);
-                                //mUiHandler.postDelayed(mLockAutoFocusRunnable, LOCK_FOCUS_DELAY_ON_FOCUSED);
-                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED");
-                                break;
-                        }
-                    }
-                    mLastAfState = afState;
+//                    Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
+//                    if (afState != null && !afState.equals(mLastAfState)) {
+//                        switch (afState) {
+//                            case CaptureResult.CONTROL_AF_STATE_INACTIVE:
+//                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_INACTIVE");
+//                                lockAutoFocus();
+//                                break;
+//                            case CaptureResult.CONTROL_AF_STATE_ACTIVE_SCAN:
+//                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_ACTIVE_SCAN");
+//                                break;
+//                            case CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED:
+//                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED");
+//                                mUiHandler.removeCallbacks(mLockAutoFocusRunnable);
+//                                mUiHandler.postDelayed(mLockAutoFocusRunnable, LOCK_FOCUS_DELAY_ON_FOCUSED);
+//                                break;
+//                            case CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED:
+//                                mUiHandler.removeCallbacks(mLockAutoFocusRunnable);
+//                                mUiHandler.postDelayed(mLockAutoFocusRunnable, LOCK_FOCUS_DELAY_ON_UNFOCUSED);
+//                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED");
+//                                break;
+//                            case CaptureResult.CONTROL_AF_STATE_PASSIVE_UNFOCUSED:
+//                                mUiHandler.removeCallbacks(mLockAutoFocusRunnable);
+//                                //mUiHandler.postDelayed(mLockAutoFocusRunnable, LOCK_FOCUS_DELAY_ON_UNFOCUSED);
+//                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_PASSIVE_UNFOCUSED");
+//                                break;
+//                            case CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN:
+//                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN");
+//                                break;
+//                            case CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED:
+//                                mUiHandler.removeCallbacks(mLockAutoFocusRunnable);
+//                                //mUiHandler.postDelayed(mLockAutoFocusRunnable, LOCK_FOCUS_DELAY_ON_FOCUSED);
+//                                Log.d(TAG, "CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED");
+//                                break;
+//                        }
+//                    }
+//                    mLastAfState = afState;
                     break;
                 }
                 case STATE_WAITING_LOCK: {
@@ -610,8 +622,7 @@ public class CameraFragment extends Fragment
         exposureSeekBar.setOnSeekBarChangeListener(exposureSeekbarChangeListener);
         exposureSeekBar.incrementProgressBy(1);
         exposureSeekBar.setProgress(0);
-        exposureSeekBar.setMax(320000);
-
+        exposureSeekBar.setMax(16);
     }
 
     SeekBar.OnSeekBarChangeListener isoSeekbarChangeListener = new SeekBar.OnSeekBarChangeListener() {
@@ -669,10 +680,11 @@ public class CameraFragment extends Fragment
             } else {
                 SEMI_MANUAL_MODE = true;
                 SEMI_MANUAL_MODE_EXPOSURE = true;
-                Long expTime = Long.valueOf(String.valueOf(progress));
-                expTime *= 100000;
-                MANUAL_EXP_VALUE = Long.valueOf(expTime);
-                exposureValueTextView.setText("EXP: " + expTime);
+                //Long expTime = Long.valueOf(String.valueOf(progress));
+                //expTime *= 100000;
+                Long expTime = exposureValues[progress-1];
+                MANUAL_EXP_VALUE = expTime;
+                exposureValueTextView.setText("EXP: " + exposureEntries[progress-1]);
             }
 
         }
@@ -1109,17 +1121,23 @@ public class CameraFragment extends Fragment
 
                                 //CONTROL PREVIEW /////////////////////////////////////////////////////////////////
                                 //TEST DISTORTION CORRECTION
-                                if (mCameraId.equals("0")) {
+                                if (mCameraId.equals(CAMERA_BACK_MAIN)) {
                                     mPreviewRequestBuilder.set(ReflectionHelper.NORMAL_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
-                                } else if (mCameraId.equals("21")) {
+                                } else if (mCameraId.equals(CAMERA_BACK_WIDE)) {
                                     mPreviewRequestBuilder.set(ReflectionHelper.ULTRA_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
-                                } else if (mCameraId.equals("1")) {
+                                } else if (mCameraId.equals(CAMERA_FRONT)) {
                                     //mPreviewRequestBuilder.set(ReflectionHelper.FRONT_MIRROR, true);
                                     //mPreviewRequestBuilder.set(ReflectionHelper.SANPSHOT_FLIP_MODE, ReflectionHelper.VALUE_SANPSHOT_FLIP_MODE_OFF);
                                 }
                                 //
-                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                                        CaptureRequest.CONTROL_AF_MODE_AUTO);
+                                //mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                                //        CaptureRequest.CONTROL_AF_MODE_AUTO);
+                                //if (isAutoFocusSupported())
+                                //    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                                //            CaptureRequest.CONTROL_AF_MODE_AUTO);
+                                //else
+                                    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                                            CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
 
                                 // Flash is automatically enabled when necessary.
                                 setAutoFlash(mPreviewRequestBuilder);
@@ -1128,6 +1146,9 @@ public class CameraFragment extends Fragment
                                 mPreviewRequest = mPreviewRequestBuilder.build();
                                 mCaptureSession.setRepeatingRequest(mPreviewRequest,
                                         mCaptureCallback, mBackgroundHandler);
+                                //try {
+                                //    mCaptureSession.capture(mPreviewRequestBuilder.build(), mPreCaptureCallback, mBackgroundHandler);
+                                //} catch (Exception e) {e.printStackTrace();}
                             } catch (CameraAccessException e) {
                                 e.printStackTrace();
                             }
@@ -1308,20 +1329,19 @@ public class CameraFragment extends Fragment
 
                 //captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                 //        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-                if (isAutoFocusSupported())
-                    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                            CaptureRequest.CONTROL_AF_MODE_AUTO);
-                else
+                //if (isAutoFocusSupported())
+                //    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                //            CaptureRequest.CONTROL_AF_MODE_AUTO);
+                //else
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                             CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
 
-                if (mCameraId.equals("0") && MANUAL_ISO_VALUE < 400) {
+                if (mCameraId.equals(CAMERA_BACK_MAIN) && MANUAL_ISO_VALUE < 400 && mImageReader.getHeight() == 6936) {
+                    Log.i(TAG, "Get height: " + mImageReader.getHeight());
                     captureBuilder.set(ReflectionHelper.MTK_REMOSAIC_ENABLE_KEY, ReflectionHelper.CONTROL_REMOSAIC_HINT_ON);
                     captureBuilder.set(ReflectionHelper.XIAOMI_REMOSAIC_ENABLE_KEY, 1);
                 }
-                //captureBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, Long.valueOf(32));
-                //captureBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, 100);
-                //captureBuilder.set(CaptureRequest.SENSOR_FRAME_DURATION, mCameraCharacteristics.get(SENSOR_INFO_MAX_FRAME_DURATION));
+
             } else {
                 Log.i("AlphaCamera", "AUTO_DEFAULT_MODE enabled");
                 // This is the CaptureRequest.Builder that we use to take a picture.
@@ -1333,18 +1353,13 @@ public class CameraFragment extends Fragment
                 //BlackLevelPattern blevel = mCameraCharacteristics.get(CameraCharacteristics.SENSOR_BLACK_LEVEL_PATTERN);
 
                 //TEST MTK
-                if (mCameraId.equals("0")) {
+                if (mCameraId.equals(CAMERA_BACK_MAIN) && mImageReader.getHeight() == 6936) {
                     //force remosaic
                     captureBuilder.set(ReflectionHelper.MTK_REMOSAIC_ENABLE_KEY, ReflectionHelper.CONTROL_REMOSAIC_HINT_ON);
                     captureBuilder.set(ReflectionHelper.XIAOMI_REMOSAIC_ENABLE_KEY, 1);
                     captureBuilder.set(ReflectionHelper.NORMAL_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
-                    //StockHelper.copyFpcDataFromCaptureResultToRequest(mPreviewCaptureResult,captureBuilder);
                     captureBuilder.set(ReflectionHelper.DEPURPLE, Byte.valueOf("1"));
-                    //captureBuilder.set(ReflectionHelper.SUPER_NIGHT_SCENE_ENABLED, true);
-                    //captureBuilder.set(ReflectionHelper.CONTROL_CAPTURE_ISP_META_ENABLE, Byte.valueOf("1"));
-                    //captureBuilder.set(ReflectionHelper.CONTROL_CAPTURE_ISP_META_REQUEST, ReflectionHelper.CONTROL_CAPTURE_ISP_TUNING_REQ_RAW);
-                    //captureBuilder.set(ReflectionHelper.CONTROL_CAPTURE_HIGH_QUALITY_REPROCESS, ReflectionHelper.CONTROL_CAPTURE_HIGH_QUALITY_YUV_ON);
-                } else if (mCameraId.equals("21")) {
+                } else if (mCameraId.equals(CAMERA_BACK_WIDE)) {
                     captureBuilder.set(ReflectionHelper.ULTRA_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
 //                    byte [] byteArray = new byte[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0,-16,63,0,0,0,0,0,0,0,0,-128,-49,60,106,44,73,
 //                            -95,63,64,91,115,-8,-88,77,-63,63,0,64,56,119,-51,127,-45,63,48,
@@ -1359,7 +1374,7 @@ public class CameraFragment extends Fragment
                     if (mFrontMirror) {
                         captureBuilder.set(ReflectionHelper.FRONT_MIRROR, true);
                         captureBuilder.set(ReflectionHelper.SANPSHOT_FLIP_MODE, ReflectionHelper.VALUE_SANPSHOT_FLIP_MODE_ON);
-                    } else if (!mFrontMirror) {
+                    } else {
                         captureBuilder.set(ReflectionHelper.FRONT_MIRROR, true);
                         captureBuilder.set(ReflectionHelper.SANPSHOT_FLIP_MODE, ReflectionHelper.VALUE_SANPSHOT_FLIP_MODE_OFF);
                     }
@@ -1369,10 +1384,10 @@ public class CameraFragment extends Fragment
                 // Use the same AE and AF modes as the preview.
                 //captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                 //        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-                if (isAutoFocusSupported())
-                    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                            CaptureRequest.CONTROL_AF_MODE_AUTO);
-                else
+                //if (isAutoFocusSupported())
+                //    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                //            CaptureRequest.CONTROL_AF_MODE_AUTO);
+                //else
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                             CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                 //captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
@@ -1474,9 +1489,9 @@ public class CameraFragment extends Fragment
     }
 
     private void setAutoFlash(CaptureRequest.Builder requestBuilder) {
-        if (mFlashSupported) {
-            requestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
-                    CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+        if (mFlashSupported) { //TODO FLASH NOT ALWAYS ON AUTO
+            //requestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+            //        CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
         }
     }
 
