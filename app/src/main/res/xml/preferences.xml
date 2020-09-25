@@ -16,6 +16,13 @@
             android:defaultValue="@string/pref_PhotoSettings_quality_defaultValue"
             android:entries="@array/pref_PhotoSettings_quality_entries"
             android:entryValues="@array/pref_PhotoSettings_quality_values"/>
+        <ListPreference
+            android:key="pref_antibanding_mode_key"
+            android:title="Antibanding mode"
+            android:summary="Choose which antibanding mode will be used"
+            android:defaultValue="3"
+            android:entries="@array/pref_antibanding_entries"
+            android:entryValues="@array/pref_antibanding_values"/>
         <CheckBoxPreference
             android:key="pref_enableRaw_key"
             android:title="RAW Capture"

@@ -223,6 +223,41 @@ public class ReflectionHelper {
             e.printStackTrace();
         }
 
+//        //Get info about stream configuration map:
+//        Class streamConfigurationMap = null;
+//        try {
+//            streamConfigurationMap = Class.forName("android.hardware.camera2.params.StreamConfigurationMap");
+//            Log.i("AlphaCamera-StreamConfig", "Class");
+//            Method getString = streamConfigurationMap.getDeclaredMethod("toString");
+//            Log.i("AlphaCamera-StreamConfig", "Method");
+//            getString.setAccessible(true);
+//            Log.i("AlphaCamera-StreamConfig", "Method-accessible");
+//
+//            Constructor[] ctors = streamConfigurationMap.getDeclaredConstructors();
+//            Constructor ctor = null;
+//            for (int i = 0; i < ctors.length; i++) {
+//                ctor = ctors[i];
+//                if (ctor.getGenericParameterTypes().length == 0)
+//                    break;
+//                Log.i("AlphaCamera-StreamConfig", "0 constructor found");
+//            }
+//            ctor.setAccessible(true);
+//            Log.i("AlphaCamera-StreamConfig", "Constructor-accessible");
+//            Object streamConfigurationMapInstance = ctor.newInstance();
+//            Log.i("AlphaCamera-StreamConfig", "New instance");
+//            String streamConfigurations = (String) getString.invoke(streamConfigurationMapInstance);
+//            Log.i("AlphaCamera-StreamConfig", streamConfigurations);
+//        } catch (ClassNotFoundException | NoSuchMethodException e) {
+//            e.printStackTrace();
+//        } catch (IllegalAccessException e) {
+//            e.printStackTrace();
+//        } catch (InvocationTargetException e) {
+//            e.printStackTrace();
+//        } catch (InstantiationException e) {
+//            e.printStackTrace();
+//        }
+//        ///////////
+
         //Method getDeclaredMethod = Class.class.getDeclaredMethod("getDeclaredMethod", String.class, Class<?>)
         //Class vmRuntimeClass = (Class) forName.invoke(null, "dalvik.system.VMRuntime");
         //Method getRuntime = vmRuntimeClass.getDeclaredMethod.invoke("getRuntime", null);
@@ -305,6 +340,4 @@ public class ReflectionHelper {
             e.printStackTrace();
         }
     }
-
-
 }

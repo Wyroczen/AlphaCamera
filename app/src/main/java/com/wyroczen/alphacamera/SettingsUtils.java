@@ -23,10 +23,23 @@ public class SettingsUtils {
     public static final String PREF_TAP_TO_CAPTURE_KEY = "pref_tapToCapture_key";
     public static final String PREF_FRONT_FLIP_KEY = "pref_frontFlip_key";
     public static final String PREF_SHUTTER_SOUND_KEY = "pref_shutterSound_key";
+    public static final String PREF_ANTIBANDING_MODE_KEY = "pref_antibanding_mode_key";
 
     public Boolean readBooleanSettings(Context context, String key) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         Boolean result = sharedPreferences.getBoolean(key, false);
+        return result;
+    }
+
+    public int readIntSettings(Context context, String key) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        int result = sharedPreferences.getInt(key, 0);
+        return result;
+    }
+
+    public String readStringSettings(Context context, String key) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String result = sharedPreferences.getString(key, "0");
         return result;
     }
 

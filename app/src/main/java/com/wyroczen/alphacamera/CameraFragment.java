@@ -116,6 +116,8 @@ public class CameraFragment extends Fragment
     public Boolean FULL_MANUAL_MODE = false;
     public Integer MANUAL_ISO_VALUE = 100;
     public Long MANUAL_EXP_VALUE = 100000L;
+    //Antibanding
+    public int mAntibandingMode = 3;
 
     private final String[] exposureEntries = new String[]{"1/1000","1/500","1/250","1/125","1/60","1/30","1/15","1/8","1/4","1/2","1","2","4","8","16","32"};
     private final Long[] exposureValues = new Long[]{1000000L,2000000L,4000000L,8000000L,16666666L,32333333L,64666666L,125000000L,250000000L,500000000L,1000000000L,2000000000L,4000000000L,8000000000L,16000000000L,32000000000L};
@@ -758,6 +760,8 @@ public class CameraFragment extends Fragment
         choosenBackResolution = mSettingsUtils.readSizeSettings(getContext(), SettingsUtils.PREF_RESOLUTION_BACK_KEY);
         mFrontMirror = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_FRONT_FLIP_KEY);
         mShutterSoundEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_SHUTTER_SOUND_KEY);
+        //Antibanding
+        mAntibandingMode = Integer.parseInt(mSettingsUtils.readStringSettings(getContext(), SettingsUtils.PREF_ANTIBANDING_MODE_KEY));
         //Brightness:
         Boolean maxBrightness = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_MAX_BRIGHTNESS_KEY);
         setAppBrightness(maxBrightness);
@@ -1120,6 +1124,8 @@ public class CameraFragment extends Fragment
                                 //        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
 
                                 //CONTROL PREVIEW /////////////////////////////////////////////////////////////////
+                                //Antibanding
+                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_ANTIBANDING_MODE, mAntibandingMode);
                                 //TEST DISTORTION CORRECTION
                                 if (mCameraId.equals(CAMERA_BACK_MAIN)) {
                                     mPreviewRequestBuilder.set(ReflectionHelper.NORMAL_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
@@ -1352,6 +1358,8 @@ public class CameraFragment extends Fragment
                 //Blacklevel
                 //BlackLevelPattern blevel = mCameraCharacteristics.get(CameraCharacteristics.SENSOR_BLACK_LEVEL_PATTERN);
 
+                //Antibanding
+                captureBuilder.set(CaptureRequest.CONTROL_AE_ANTIBANDING_MODE, mAntibandingMode);
                 //TEST MTK
                 if (mCameraId.equals(CAMERA_BACK_MAIN) && mImageReader.getHeight() == 6936) {
                     //force remosaic

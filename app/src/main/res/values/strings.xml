@@ -43,4 +43,17 @@
     <string-array name="pref_backRes_entries"></string-array>
     <string-array name="pref_backRes_values"></string-array>
 
+    <string-array name="pref_antibanding_entries">
+        <item>OFF</item>
+        <item>AUTO</item>
+        <item>50Hz</item>
+        <item>60Hz</item>
+    </string-array>
+    <string-array name="pref_antibanding_values">
+        <item>0</item>
+        <item>3</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
 </resources>
