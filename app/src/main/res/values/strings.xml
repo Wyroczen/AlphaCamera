@@ -55,5 +55,28 @@
         <item>1</item>
         <item>2</item>
     </string-array>
+    <string-array name="pref_streamConfig_entries">
+        <item>DEFAULT</item>
+        <item>VENDOR_MODE_0</item>
+        <item>VENDOR_MODE_1</item>
+        <item>VENDOR_MODE_2 (DUAL CAM)</item>
+        <item>VENDOR_MODE_3</item>
+        <item>VENDOR_MODE_4 (STREAMING NORMAL VIDEO)</item>
+        <item>VENDOR_MODE_5</item>
+        <item>VENDOR_MODE_6</item>
+        <item>SUPER_NIGHT</item>
+    </string-array>
+    <string-array name="pref_streamConfig_values">
+        <item>0</item>
+        <item>32768</item>
+        <item>32769</item>
+        <item>32770</item>
+        <item>32771</item>
+        <item>32772</item>
+        <item>32773</item>
+        <item>32774</item>
+        <item>32778</item>
+    </string-array>
+    pref_streamConfig_entries
 
 </resources>

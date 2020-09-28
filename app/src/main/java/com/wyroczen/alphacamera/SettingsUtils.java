@@ -24,6 +24,7 @@ public class SettingsUtils {
     public static final String PREF_FRONT_FLIP_KEY = "pref_frontFlip_key";
     public static final String PREF_SHUTTER_SOUND_KEY = "pref_shutterSound_key";
     public static final String PREF_ANTIBANDING_MODE_KEY = "pref_antibanding_mode_key";
+    public static final String PREF_STREAM_CONFIG_KEY = "pref_streamConfig_key";
 
     public Boolean readBooleanSettings(Context context, String key) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);

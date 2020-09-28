@@ -118,6 +118,8 @@ public class CameraFragment extends Fragment
     public Long MANUAL_EXP_VALUE = 100000L;
     //Antibanding
     public int mAntibandingMode = 3;
+    //StreamConfig/Opmode
+    public int mStreamConfigOpmode = 0;
 
     private final String[] exposureEntries = new String[]{"1/1000","1/500","1/250","1/125","1/60","1/30","1/15","1/8","1/4","1/2","1","2","4","8","16","32"};
     private final Long[] exposureValues = new Long[]{1000000L,2000000L,4000000L,8000000L,16666666L,32333333L,64666666L,125000000L,250000000L,500000000L,1000000000L,2000000000L,4000000000L,8000000000L,16000000000L,32000000000L};
@@ -762,6 +764,10 @@ public class CameraFragment extends Fragment
         mShutterSoundEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_SHUTTER_SOUND_KEY);
         //Antibanding
         mAntibandingMode = Integer.parseInt(mSettingsUtils.readStringSettings(getContext(), SettingsUtils.PREF_ANTIBANDING_MODE_KEY));
+        //Opmode/stream config
+        mStreamConfigOpmode = Integer.parseInt(mSettingsUtils.readStringSettings(getContext(),SettingsUtils.PREF_STREAM_CONFIG_KEY));
+        if(mStreamConfigOpmode == 32770) //Vendor mode 2// dualcam
+            forceSwitchBackCamera("61");
         //Brightness:
         Boolean maxBrightness = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_MAX_BRIGHTNESS_KEY);
         setAppBrightness(maxBrightness);
@@ -859,6 +865,12 @@ public class CameraFragment extends Fragment
             closeCamera();
             onResume();
         }
+    }
+
+    private void forceSwitchBackCamera(String newCameraId) {
+        mCameraId = newCameraId;
+        closeCamera();
+        onResume();
     }
 
     private void switchFrontCamera() {
@@ -1108,7 +1120,7 @@ public class CameraFragment extends Fragment
                 OutputConfiguration outputConfiguration = new OutputConfiguration(outputSurface);
                 outputConfigurationList.add(outputConfiguration);
             }
-            ReflectionHelper.createCustomCaptureSession.invoke(mCameraDevice, null, outputConfigurationList, 0, new CameraCaptureSession.StateCallback() { //32778 TODO night mode
+            ReflectionHelper.createCustomCaptureSession.invoke(mCameraDevice, null, outputConfigurationList, mStreamConfigOpmode, new CameraCaptureSession.StateCallback() { //32778 TODO night mode
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                             // The camera is already closed
