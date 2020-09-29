@@ -25,6 +25,7 @@
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
     <string name="intro_message">Intro</string>
     <string name="title_activity_camera_video">CameraVideoActivity</string>
+    <string name="camera_switch">Camera switch</string>
     <string-array name="pref_PhotoSettings_quality_entries">
         <item>100%</item>
         <item>90%</item>

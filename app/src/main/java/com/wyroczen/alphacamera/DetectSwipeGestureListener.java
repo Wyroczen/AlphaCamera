@@ -5,6 +5,9 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
+import com.wyroczen.alphacamera.gallery.GalleryActivity;
+import com.wyroczen.alphacamera.gallery.GalleryAdapter;
+
 import java.util.Map;
 
 import androidx.fragment.app.Fragment;
@@ -37,9 +40,13 @@ public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureL
         return this.activityCamera;
     }
 
-    public CameraVideoActivity getActivityCameraVideo() { return this.activityCameraVideo; }
+    public CameraVideoActivity getActivityCameraVideo() {
+        return this.activityCameraVideo;
+    }
 
-    public MapsActivity getActivityMaps() { return this.activityMaps; }
+    public MapsActivity getActivityMaps() {
+        return this.activityMaps;
+    }
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
@@ -61,7 +68,7 @@ public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureL
 
                     Intent i = new Intent(activityCamera, CameraVideoActivity.class);
                     i.putExtra("CAMERA_ID", cameraId);
-                    i.putExtra("LATITUDE",  String.valueOf(activityCamera.latitude));
+                    i.putExtra("LATITUDE", String.valueOf(activityCamera.latitude));
                     i.putExtra("LONGITUDE", String.valueOf(activityCamera.longitude));
                     activityCamera.startActivity(i);
                 }
@@ -108,6 +115,10 @@ public class DetectSwipeGestureListener extends GestureDetector.SimpleOnGestureL
     @Override
     public boolean onDoubleTap(MotionEvent e) {
         Log.i("AlphaCamera", "Double tap");
+        if (activityCamera != null) {
+            Intent i = new Intent(activityCamera, GalleryActivity.class);
+            activityCamera.startActivity(i);
+        }
         return true;
     }
 

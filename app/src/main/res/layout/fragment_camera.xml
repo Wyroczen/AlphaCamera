@@ -103,29 +103,33 @@
 
     <ImageButton
         android:id="@+id/settings"
-        android:contentDescription="@string/description_settings"
         style="@android:style/Widget.Material.Light.Button.Borderless"
         android:layout_width="56dp"
         android:layout_height="56dp"
-        app:layout_constraintLeft_toLeftOf="@+id/capture_button"
-        app:layout_constraintRight_toRightOf="parent"
+        android:layout_gravity="center"
+        android:scaleType="fitXY"
+        android:adjustViewBounds="true"
+        android:padding="0dp"
+        android:contentDescription="@string/description_settings"
+        android:src="@drawable/ic_baseline_settings_24"
         app:layout_constraintBottom_toBottomOf="@+id/capture_button"
-        android:layout_gravity="center_vertical|right"
-        android:padding="200dp"
-        android:src="@drawable/ic_action_info" />
+        app:layout_constraintLeft_toLeftOf="@+id/capture_button"
+        app:layout_constraintRight_toRightOf="parent" />
 
     <ImageButton
         android:id="@+id/camera_switch"
-        android:contentDescription="@string/description_settings"
         style="@android:style/Widget.Material.Light.Button.Borderless"
         android:layout_width="56dp"
         android:layout_height="56dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="@+id/capture_button"
+        android:layout_gravity="center"
+        android:scaleType="fitXY"
+        android:adjustViewBounds="true"
+        android:padding="0dp"
+        android:contentDescription="@string/camera_switch"
+        android:src="@drawable/ic_round_camera_switch_24"
         app:layout_constraintBottom_toBottomOf="@+id/capture_button"
-        android:layout_gravity="center_vertical|left"
-        android:padding="200dp"
-        android:src="@drawable/ic_action_info" />
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="@+id/capture_button" />
 
     <SeekBar
         android:id="@+id/exposure_seekBar"
