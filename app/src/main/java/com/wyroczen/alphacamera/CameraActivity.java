@@ -99,34 +99,34 @@ public class CameraActivity extends AppCompatActivity {
                     .commit();
         }
 
-        //TESTS FOR NATIVE LIB AND ASM
-        NativeLibJNI nlj = new NativeLibJNI();
-        Log.i(TAG, "Welcome message: " + nlj.getWelcome());
-
-        Signature[] sigs = new Signature[0];
-        try {
-            sigs = this.getPackageManager().getPackageInfo(this.getPackageName(), PackageManager.GET_SIGNATURES).signatures;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        for (Signature sig : sigs)
-        {
-            Log.i(TAG, sig.toCharsString());
-            Log.i(TAG, "Signature hashcode : " + sig.hashCode());
-        }
-
-        boolean b = nlj.isSignatureCorrect();
-        Log.i(TAG, "IS SIGNATURE CORRECT : " + b);
-
-        Size[] sizes = new Size[]{new Size(4640,3472), new Size(9248,6936)};
-        Size[] newSizes = nlj.removeSize(sizes, sizes.length);
-        for(Size s : newSizes){
-            Log.i(TAG, "Size: (Height)" + s.getHeight());
-        }
-
-        ASMHelper asmHelper = new ASMHelper();
-        Log.i(TAG, "ASM: ");
-        //asmHelper.doSomething();
+//        //TESTS FOR NATIVE LIB AND ASM
+//        NativeLibJNI nlj = new NativeLibJNI();
+//        Log.i(TAG, "Welcome message: " + nlj.getWelcome());
+//
+//        Signature[] sigs = new Signature[0];
+//        try {
+//            sigs = this.getPackageManager().getPackageInfo(this.getPackageName(), PackageManager.GET_SIGNATURES).signatures;
+//        } catch (PackageManager.NameNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//        for (Signature sig : sigs)
+//        {
+//            Log.i(TAG, sig.toCharsString());
+//            Log.i(TAG, "Signature hashcode : " + sig.hashCode());
+//        }
+//
+//        boolean b = nlj.isSignatureCorrect();
+//        Log.i(TAG, "IS SIGNATURE CORRECT : " + b);
+//
+//        Size[] sizes = new Size[]{new Size(4640,3472), new Size(9248,6936)};
+//        Size[] newSizes = nlj.removeSize(sizes, sizes.length);
+//        for(Size s : newSizes){
+//            Log.i(TAG, "Size: (Height)" + s.getHeight());
+//        }
+//
+//        ASMHelper asmHelper = new ASMHelper();
+//        Log.i(TAG, "ASM: ");
+//        //asmHelper.doSomething();
 
     }
 

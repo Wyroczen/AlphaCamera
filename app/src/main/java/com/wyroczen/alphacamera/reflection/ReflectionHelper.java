@@ -129,13 +129,13 @@ public class ReflectionHelper {
         createCustomCaptureSession.setAccessible(true);
 
         //test
-        String sPlatform = ((String) ReflectUtils.invokeStatic("android.os.SystemProperties", "get", new String[]{"ro.netflix.bsp_rev"}));
-        Log.i("AlphaCamera-reflection", "MTK PLATFORM: " + sPlatform);
+        //String sPlatform = ((String) ReflectUtils.invokeStatic("android.os.SystemProperties", "get", new String[]{"ro.netflix.bsp_rev"}));
+        //Log.i("AlphaCamera-reflection", "MTK PLATFORM: " + sPlatform);
         //ReflectUtils.invokeStatic("android.os.SystemProperties", "set", new String[]{"wyroczen","wyroczen_success"});
         //String wyroczen = ((String) ReflectUtils.invokeStatic("android.os.SystemProperties", "get", new String[]{"wyroczen"}));
         //Log.i("AlphaCamera-reflection", "WYROCZEN: " + wyroczen);
 
-        ignoreInputConfigurationCheck();
+        //ignoreInputConfigurationCheck();
     }
 
 

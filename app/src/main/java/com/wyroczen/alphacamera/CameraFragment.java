@@ -78,6 +78,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -776,7 +777,7 @@ public class CameraFragment extends Fragment
         reflectionHelper = new ReflectionHelper();
 
         //mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
-        String fileName = new SimpleDateFormat("yyyMMddHHhh").format(new Date()) + "_AlphaCamera";
+        String fileName = new SimpleDateFormat("yyyMMddHHhh").format(new Date()) + UUID.randomUUID().toString().substring(0,5) + "_AlphaCamera";
         if (chosenImageFormat == ImageFormat.JPEG) {
             mFile = new File(getActivity().getExternalFilesDir("Pictures"), fileName + ".jpg");
         } else if (chosenImageFormat == ImageFormat.RAW_SENSOR) {

@@ -2,6 +2,7 @@ package com.wyroczen.alphacamera.gallery;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,12 +19,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
 
+    private final String TAG = "AlphaCamera-GalleryAdapter";
     private ArrayList<Cell> galleryList;
     private Context context;
 
     public GalleryAdapter(Context context, ArrayList<Cell> galleryList) {
         this.galleryList = galleryList;
         this.context = context;
+        Log.i(TAG, "Gallery List size: " + galleryList.size());
     }
 
     @NonNull
@@ -36,6 +39,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
         viewHolder.img.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        Log.i(TAG, " onBindViewHolder: " + i);
         setImageFromPath(galleryList.get(i).getPath(), viewHolder.img);
         viewHolder.img.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -57,6 +61,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
             Bitmap myBitmap = ImageHelper.decodeSampleBitmapFromPath(imgFile.getAbsolutePath(), 200, 200);
             image.setImageBitmap(myBitmap);
         }
+        Log.i(TAG, "Image from path added");
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

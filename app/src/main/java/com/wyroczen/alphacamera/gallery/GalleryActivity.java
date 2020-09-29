@@ -9,6 +9,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.wyroczen.alphacamera.R;
@@ -20,7 +21,8 @@ import java.util.List;
 
 public class GalleryActivity extends AppCompatActivity {
 
-    List<Cell> allFilesPaths;
+    private final String TAG = "AlphaCamera-GalleryActivity";
+    public List<Cell> allFilesPaths;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +63,7 @@ public class GalleryActivity extends AppCompatActivity {
             cell.setPath(c.getPath());
             allImages.add(cell);
         }
+        Log.i(TAG," prepare data: all images size: " + allImages.size());
         return allImages;
     }
 
