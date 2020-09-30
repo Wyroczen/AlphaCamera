@@ -1273,7 +1273,7 @@ public class CameraFragment extends Fragment
      */
     //private void takePicture() {
     public void takePicture() {
-        if (mCameraId.equals("21") || mCameraId.equals("1")) { //TODO it should detect whether camera has autofocus feature or not
+        if (mCameraId.equals(CAMERA_BACK_WIDE) || mCameraId.equals(CAMERA_FRONT)) { //TODO it should detect whether camera has autofocus feature or not
             captureStillPicture();
         } else {
             lockFocus();
@@ -1285,7 +1285,7 @@ public class CameraFragment extends Fragment
      */
     private void lockFocus() {
         try {
-            Log.i("AlphaCamera", "Locking focus");
+            Log.i(TAG, "Locking focus");
             // This is how to tell the camera to lock focus.
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
                     CameraMetadata.CONTROL_AF_TRIGGER_START);
@@ -1321,7 +1321,7 @@ public class CameraFragment extends Fragment
      * {@link #mCaptureCallback} from both {@link #lockFocus()}.
      */
     private void captureStillPicture() {
-        Log.i("AlphaCamera", " capturing Still Picture - start");
+        Log.i(TAG, " capturing Still Picture - start");
         try {
             final Activity activity = getActivity();
             if (null == activity || null == mCameraDevice) {
@@ -1330,7 +1330,7 @@ public class CameraFragment extends Fragment
 
             final CaptureRequest.Builder captureBuilder;
             if (SEMI_MANUAL_MODE) {
-                Log.i("AlphaCamera", "SEMI_MANUAL_MODE enabled" + " Max frame dur: " + mCameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_MAX_FRAME_DURATION).toString()
+                Log.i(TAG, "SEMI_MANUAL_MODE enabled" + " Max frame dur: " + mCameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_MAX_FRAME_DURATION).toString()
                         + " Max analog sensitivity: " + mCameraCharacteristics.get(CameraCharacteristics.SENSOR_MAX_ANALOG_SENSITIVITY)
                         + " MANUAL ISO VALUE: " + MANUAL_ISO_VALUE.toString() + " Manual EXP VALUE: " + MANUAL_EXP_VALUE.toString());
                 captureBuilder =
@@ -1362,7 +1362,7 @@ public class CameraFragment extends Fragment
                 }
 
             } else {
-                Log.i("AlphaCamera", "AUTO_DEFAULT_MODE enabled");
+                Log.i(TAG, "AUTO_DEFAULT_MODE enabled");
                 // This is the CaptureRequest.Builder that we use to take a picture.
                 captureBuilder =
                         mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
@@ -1515,20 +1515,6 @@ public class CameraFragment extends Fragment
             //        CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
         }
     }
-
-//    public double latitude;
-//    public double longitude;
-//    public void getLocation(){
-//        gpsTracker = new GpsTracker(getContext(), getActivity());
-//        if(gpsTracker.canGetLocation()){
-//            latitude = gpsTracker.getLatitude();
-//            longitude = gpsTracker.getLongitude();
-//            Log.i("AplhaCamera", " Latitude: " + String.valueOf(latitude));
-//            Log.i("AplhaCamera", " Longitude: " +String.valueOf(longitude));
-//        }else{
-//            gpsTracker.showSettingsAlert();
-//        }
-//    }
 
     /**
      * Saves a JPEG or RAW {@link Image} into the specified {@link File}.
