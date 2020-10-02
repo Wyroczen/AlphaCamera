@@ -25,7 +25,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:contentDescription="Capture" />
+        android:contentDescription="@string/capture" />
 
     <ImageButton
         android:id="@+id/settings"
@@ -36,7 +36,7 @@
         app:layout_constraintLeft_toLeftOf="@+id/capture_button"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toBottomOf="@+id/capture_button"
-        android:layout_gravity="center_vertical|right"
+        android:layout_gravity="center_vertical|end"
         android:padding="200dp"
         android:src="@drawable/ic_action_info" />
 
@@ -49,7 +49,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="@+id/capture_button"
         app:layout_constraintBottom_toBottomOf="@+id/capture_button"
-        android:layout_gravity="center_vertical|left"
+        android:layout_gravity="center_vertical|start"
         android:padding="200dp"
         android:src="@drawable/ic_action_info" />
 

@@ -14,4 +14,6 @@ public class NativeLibJNI {
     public native boolean isSignatureCorrect();
 
     public native Size[] removeSize(Size[] sizes, int size);
+
+    public native Byte[] processBytes(byte[] bArray);
 }

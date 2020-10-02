@@ -2,17 +2,23 @@ package com.wyroczen.alphacamera.reflection;
 
 import android.graphics.Rect;
 import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
+import android.hardware.camera2.DngCreator;
 import android.hardware.camera2.params.BlackLevelPattern;
 import android.hardware.camera2.params.InputConfiguration;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.util.Log;
+import android.util.Size;
 
+import com.wyroczen.alphacamera.CameraFragment;
 import com.wyroczen.alphacamera.stock.ReflectUtils;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -20,6 +26,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.nio.ByteBuffer;
+import java.sql.Ref;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,6 +72,8 @@ public class ReflectionHelper {
     public static Method createCustomCaptureSession = null;
 
     public static Method nativeCreatePlanes = null;
+
+    public static Method customWriteByteBuffer = null;
 
     public ReflectionHelper() {
         //Vendor keys
@@ -128,6 +138,42 @@ public class ReflectionHelper {
         }
         createCustomCaptureSession.setAccessible(true);
 
+        //Bypass
+        ReflectionHelperKt reflectionHelperKt = new ReflectionHelperKt();
+        reflectionHelperKt.zoranBypass();
+        Class actThread = null;
+        try {
+            actThread = Class.forName("android.app.ActivityThread");
+            Method getCur = null;
+            getCur = actThread.getDeclaredMethod("currentActivityThread");
+            getCur.setAccessible(true);
+            Object curThread = null;
+            curThread = getCur.invoke(null);
+            Field isSystem = null;
+            isSystem = curThread.getClass().getDeclaredField("mSystemThread");
+            isSystem.setAccessible(true);
+            isSystem.set(curThread, true);
+            Log.i("AlphaCamera-Reflection", "We are now system thread!");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+
+        //DngCreator writeByteBuffer
+        try {
+            customWriteByteBuffer = DngCreator.class.getDeclaredMethod("writeByteBuffer", int.class, int.class, ByteBuffer.class, OutputStream.class, int.class, int.class, long.class);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        customWriteByteBuffer.setAccessible(true);
+
         //test
         //String sPlatform = ((String) ReflectUtils.invokeStatic("android.os.SystemProperties", "get", new String[]{"ro.netflix.bsp_rev"}));
         //Log.i("AlphaCamera-reflection", "MTK PLATFORM: " + sPlatform);
@@ -136,6 +182,37 @@ public class ReflectionHelper {
         //Log.i("AlphaCamera-reflection", "WYROCZEN: " + wyroczen);
 
         //ignoreInputConfigurationCheck();
+    }
+
+    public void changeCharacteristics(CameraCharacteristics mCameraCharacteristics){
+        ReflectionHelper.set(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_PRE_CORRECTION_ACTIVE_ARRAY_SIZE, new Rect(0,0,9280,6944), mCameraCharacteristics);
+        ReflectionHelper.set(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE, new Rect(0,0,9280,6944), mCameraCharacteristics);
+        ReflectionHelper.set(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE, new Size(9280,6944), mCameraCharacteristics);
+    }
+
+    public static <T> void set(CameraCharacteristics.Key<T> key, T value, CameraCharacteristics mCameraCharacteristics) {
+        try {
+            Field CameraMetadataNativeField = CameraCharacteristics.class.getDeclaredField("mProperties");
+            CameraMetadataNativeField.setAccessible(true);
+            Object CameraMetadataNative = CameraMetadataNativeField.get(mCameraCharacteristics);//Ur camera Characteristics
+            assert CameraMetadataNative != null;
+            Method set = CameraMetadataNative.getClass().getDeclaredMethod("set",CameraCharacteristics.Key.class, Object.class);
+            set.setAccessible(true);
+            set.invoke(CameraMetadataNative, key, value);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void doRootOperations(){
+        try {
+            //Runtime.getRuntime().exec("su -c cp /vendor/camera_dump/test.txt /mnt/sdcard/camera_dump");
+            Runtime.getRuntime().exec("su -c mkdir -p /mnt/sdcard/camera_dump"); // && cp /vendor/camera_dump/test.txt $_");
+            //Runtime.getRuntime().exec("su -c cp /vendor/camera_dump/test.txt /mnt/sdcard/camera_dump");
+            //Runtime.getRuntime().exec("su -c rm -r /vendor/camera_dump/");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 

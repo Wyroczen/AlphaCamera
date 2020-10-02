@@ -29,7 +29,6 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.DngCreator;
 import android.hardware.camera2.TotalCaptureResult;
-import android.hardware.camera2.params.BlackLevelPattern;
 import android.hardware.camera2.params.OutputConfiguration;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
@@ -42,11 +41,6 @@ import android.os.HandlerThread;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-//import android.support.annotation.NonNull;
-//import android.support.v4.app.ActivityCompat;
-//import android.support.v4.app.DialogFragment;
-//import android.support.v4.app.Fragment;
-//import android.support.v4.content.ContextCompat;
 import android.provider.Settings;
 import android.util.Log;
 import android.util.Size;
@@ -62,8 +56,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.wyroczen.alphacamera.metadata.ExifHelper;
+import com.wyroczen.alphacamera.rawtools.PackedWordReader;
 import com.wyroczen.alphacamera.reflection.ReflectionHelper;
-import com.wyroczen.alphacamera.stock.ReflectUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -94,8 +88,8 @@ public class CameraFragment extends Fragment
     private static final int REQUEST_CAMERA_PERMISSION = 1;
     private static final int REQUEST_FINE_LOCATION_PERMISSION = 2;
     private static final String FRAGMENT_DIALOG = "dialog";
-    private int chosenImageFormat;
-    private Size choosenBackResolution;
+    private int chosenImageFormat = ImageFormat.JPEG;
+    private Size chosenBackResolution;
     private Boolean mFrontMirror;
     private Boolean mShutterSoundEnabled;
     private CaptureResult mCaptureResult;
@@ -281,6 +275,8 @@ public class CameraFragment extends Fragment
      */
     private File mFile;
 
+    private File mPackedFile;
+
     /**
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
      * still image is ready to be saved.
@@ -307,17 +303,18 @@ public class CameraFragment extends Fragment
             //Location
             //getLocation();
             mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile, chosenImageFormat, mCameraCharacteristics, mCaptureResult, ((CameraActivity) getActivity()).longitude, ((CameraActivity) getActivity()).latitude));
+            reflectionHelper.changeCharacteristics(mCameraCharacteristics);
+            //PackedWordReader pwr = new PackedWordReader(getContext());
+            //ByteBuffer byteBuffer = pwr.getByteBuffer();
+            //ByteBuffer byteBuffer = pwr.doInNative();
+            //SAVE PACKED WORD TO DNG
+            //mBackgroundHandler.post(new PackedWordReader.PackedImageSaver(mPackedFile, mCameraCharacteristics, mCaptureResult, byteBuffer));
+            //TEST FOR YUV
+            //Image image = reader.acquireNextImage();
+            //byte[] data = PackedWordReader.NV21toJPEG(PackedWordReader.YUV420toNV21(image), image.getWidth(), image.getHeight(), 100);
+            //ByteBuffer bb = ByteBuffer.wrap(data);
+            //mBackgroundHandler.post(new PackedWordReader.PackedImageSaver(mPackedFile, mCameraCharacteristics, mCaptureResult, bb));
 
-//            //TODO EXIF TAGS LOCATION
-//            ExifInterface exif = null;
-//            try {
-//                exif = new ExifInterface(mFile.getAbsolutePath());
-//                exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, "10");
-//                exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, "10");
-//                exif.saveAttributes();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
         }
 
     };
@@ -746,11 +743,6 @@ public class CameraFragment extends Fragment
         super.onPause();
     }
 
-    //@Override
-    //public void onStop() {
-    //    super.onStop();
-    //}
-
     @Override
     public void onStart() {
 
@@ -758,9 +750,9 @@ public class CameraFragment extends Fragment
         shutterMediaPlayer = MediaPlayer.create(getActivity(), R.raw.shutter_sound);
 
         //Settings:
-        Boolean rawEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_ENABLE_RAW_KEY);
-        chosenImageFormat = rawEnabled ? ImageFormat.RAW_SENSOR : ImageFormat.JPEG;
-        choosenBackResolution = mSettingsUtils.readSizeSettings(getContext(), SettingsUtils.PREF_RESOLUTION_BACK_KEY);
+        //Boolean rawEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_ENABLE_RAW_KEY);
+        chosenImageFormat = Integer.parseInt(mSettingsUtils.readStringSettings(getContext(), SettingsUtils.PREF_IMAGE_FORMAT_KEY)); //rawEnabled ? ImageFormat.RAW_SENSOR : ImageFormat.JPEG;
+        chosenBackResolution = mSettingsUtils.readSizeSettings(getContext(), SettingsUtils.PREF_RESOLUTION_BACK_KEY);
         mFrontMirror = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_FRONT_FLIP_KEY);
         mShutterSoundEnabled = mSettingsUtils.readBooleanSettings(getContext(), SettingsUtils.PREF_SHUTTER_SOUND_KEY);
         //Antibanding
@@ -778,8 +770,10 @@ public class CameraFragment extends Fragment
 
         //mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
         String fileName = new SimpleDateFormat("yyyMMddHHhh").format(new Date()) + UUID.randomUUID().toString().substring(0,5) + "_AlphaCamera";
-        if (chosenImageFormat == ImageFormat.JPEG) {
+        if (chosenImageFormat == ImageFormat.JPEG || chosenImageFormat == ImageFormat.YUV_420_888) {
             mFile = new File(getActivity().getExternalFilesDir("Pictures"), fileName + ".jpg");
+            //TODO
+            mPackedFile = new File(getActivity().getExternalFilesDir("RAW"), fileName + "PACKED" + ".dng");
         } else if (chosenImageFormat == ImageFormat.RAW_SENSOR) {
             mFile = new File(getActivity().getExternalFilesDir("RAW"), fileName + ".dng");
         }
@@ -921,13 +915,15 @@ public class CameraFragment extends Fragment
                         Arrays.asList(map.getOutputSizes(chosenImageFormat)),
                         new CompareSizesByArea());
 
-                Log.i("AlphaCamera: ", "Image reader creator: ID: " + mCameraId + " Width: " + choosenBackResolution.getWidth() + " Height: " + choosenBackResolution.getHeight());
-                if (choosenBackResolution.getHeight() == 0 || choosenBackResolution.getWidth() == 0) {
-                    choosenBackResolution = largest;
+                Log.i("AlphaCamera: ", "Image reader creator: ID: " + mCameraId + " Width: " + chosenBackResolution.getWidth() + " Height: " + chosenBackResolution.getHeight());
+                if (chosenBackResolution.getHeight() == 0 || chosenBackResolution.getWidth() == 0) {
+                    chosenBackResolution = largest;
                 }
 
-                if (chosenImageFormat == ImageFormat.JPEG) {
-                    mImageReader = ImageReader.newInstance(choosenBackResolution.getWidth(), choosenBackResolution.getHeight(),
+                if (chosenImageFormat == ImageFormat.JPEG || chosenImageFormat == ImageFormat.YUV_420_888) {
+                    // = ImageReader.newInstance(chosenBackResolution.getWidth(), chosenBackResolution.getHeight(),
+                    //        chosenImageFormat, /*maxImages*/1); //było 2
+                    mImageReader = ImageReader.newInstance(chosenBackResolution.getWidth(), chosenBackResolution.getHeight(),
                             chosenImageFormat, /*maxImages*/1); //było 2
                 } else {
                     mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
@@ -1418,7 +1414,7 @@ public class CameraFragment extends Fragment
 
             // Orientation
             int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-            if (chosenImageFormat == ImageFormat.JPEG) {
+            if (chosenImageFormat == ImageFormat.JPEG || chosenImageFormat == ImageFormat.YUV_420_888) {
                 captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
                 //captureBuilder.set(CaptureRequest.JPEG_GPS_LOCATION, new Location(""));
             }
@@ -1564,7 +1560,38 @@ public class CameraFragment extends Fragment
 
         @Override
         public void run() {
-            if (mImageFormat == ImageFormat.JPEG) {
+            if (mImageFormat == ImageFormat.YUV_420_888) {
+
+                byte[] bytes = PackedWordReader.NV21toJPEG(PackedWordReader.YUV420toNV21(mImage), mImage.getWidth(), mImage.getHeight(), 100);
+
+                FileOutputStream output = null;
+                try {
+                    output = new FileOutputStream(mFile);
+                    output.write(bytes);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    mImage.close();
+
+                    if (null != output) {
+                        try {
+                            output.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                //Save metadata (GPS mainly) to exif
+                try {
+
+                    ExifHelper.saveMetaData(mFile, mLatutude, mLongitude);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            } else if (mImageFormat == ImageFormat.JPEG) {
+
                 ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
                 byte[] bytes = new byte[buffer.remaining()];
                 buffer.get(bytes);

@@ -30,12 +30,13 @@
             android:defaultValue="0"
             android:entries="@array/pref_streamConfig_entries"
             android:entryValues="@array/pref_streamConfig_values"/>
-        <CheckBoxPreference
-            android:key="pref_enableRaw_key"
-            android:title="RAW Capture"
-            android:summary="Capture dng instead of jpeg"
-            android:defaultValue="false"
-            />
+        <ListPreference
+            android:key="pref_imageFormat_key"
+            android:title="Image format"
+            android:summary="Choose image format"
+            android:defaultValue="256"
+            android:entries="@array/pref_imageFormat_entries"
+            android:entryValues="@array/pref_imageFormat_values"/>
         <CheckBoxPreference
             android:key="pref_maxBrightness_key"
             android:title="Full Brightness"

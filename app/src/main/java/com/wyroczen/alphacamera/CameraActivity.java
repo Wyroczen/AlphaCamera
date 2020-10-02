@@ -18,6 +18,8 @@ import com.google.android.material.snackbar.Snackbar;
 import com.wyroczen.alphacamera.asm.ASMHelper;
 import com.wyroczen.alphacamera.jni.NativeLibJNI;
 import com.wyroczen.alphacamera.location.LocationService;
+import com.wyroczen.alphacamera.rawtools.PackedWordReader;
+import com.wyroczen.alphacamera.reflection.ReflectionHelper;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -98,6 +100,10 @@ public class CameraActivity extends AppCompatActivity {
                     .replace(R.id.container, CameraFragment.newInstance())
                     .commit();
         }
+
+        //ROOT TESTS
+        //ReflectionHelper.doRootOperations();
+
 
 //        //TESTS FOR NATIVE LIB AND ASM
 //        NativeLibJNI nlj = new NativeLibJNI();

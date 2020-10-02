@@ -6,13 +6,13 @@
 #include <string>
 #include <iostream>
 #include <android/log.h>
+#include <vector>
 
 using std::string;
 using std::cout;
 using std::endl;
 
 int SIGNATURE_CORRECT = 0;
-
 
 void print_welcome_message() {
     cout << "Hello from shared library!" << endl;
@@ -214,3 +214,129 @@ Java_com_wyroczen_alphacamera_jni_NativeLibJNI_removeSize(JNIEnv *env, jobject t
 //    return 1;
 //
 //}
+
+jbyteArray as_byte_array(JNIEnv *env, unsigned char* buf, int len) {
+    jbyteArray array = env->NewByteArray (len);
+    env->SetByteArrayRegion (array, 0, len, reinterpret_cast<jbyte*>(buf));
+    return array;
+}
+
+unsigned char* as_unsigned_char_array(JNIEnv *env, jbyteArray array) {
+    int len = env->GetArrayLength (array);
+    unsigned char* buf = new unsigned char[len];
+    env->GetByteArrayRegion (array, 0, len, reinterpret_cast<jbyte*>(buf));
+    return buf;
+}
+
+void
+pack32(uint32_t val,uint8_t *dest)
+{
+    dest[0] = (val & 0xff000000) >> 24;
+    dest[1] = (val & 0x00ff0000) >> 16;
+    dest[2] = (val & 0x0000ff00) >>  8;
+    dest[3] = (val & 0x000000ff)      ;
+}
+
+extern "C"
+JNIEXPORT jobjectArray JNICALL
+Java_com_wyroczen_alphacamera_jni_NativeLibJNI_processBytes(JNIEnv *env, jobject thiz,
+                                                            jbyteArray array) {
+    jbyte* buffer = env->GetByteArrayElements(array, NULL);
+    jsize size = env->GetArrayLength(array);
+
+    std::vector<string> allDataAsStrings;
+    std::string fourtybits = "";
+    int j = 0;
+
+    for(int i = 0; i < size; i=i+5) {
+
+        unsigned char byte = buffer[i];// Read from file
+        unsigned char mask = 1; // Bit mask
+        std::string bin{};
+        // Extract the bits
+
+        fourtybits.clear();
+        for(int j = 0; j < 5; j++) {
+            bin.clear();
+            for (int z = 0; z < 8; z++) {
+                // Mask each bit in the byte and store it
+                //bits[i] = (byte & (mask << i)) != 0;
+                int x = (byte & (mask << z)) != 0;
+                if (x == 0) bin.insert(bin.begin(), '0');
+                else bin.insert(bin.begin(), '1');
+            }
+            //__android_log_print(ANDROID_LOG_INFO, "AlphaCamera-Native", "Byte = %d", byte);
+            //__android_log_print(ANDROID_LOG_INFO, "AlphaCamera-Native", "Bin = %s", bin.c_str());
+            fourtybits.append(bin);
+        }
+
+        if(i % 5 == 0){
+            allDataAsStrings.push_back(fourtybits);
+            //__android_log_print(ANDROID_LOG_INFO, "AlphaCamera-Native", "Binary = %s", allDataAsStrings[0].c_str());
+        }
+
+        uint8_t allNewBytes[allDataAsStrings.size()*4];
+
+        for(int i = 0; i < allDataAsStrings.size(); i++) {
+
+            std::string base2_10_1 =
+                    allDataAsStrings[i].substr(0, 8) + allDataAsStrings[i].substr(38, 40);
+            std::string base2_10_2 =
+                    allDataAsStrings[i].substr(8, 16) + allDataAsStrings[i].substr(36, 38);
+            std::string base2_10_3 =
+                    allDataAsStrings[i].substr(16, 24) + allDataAsStrings[i].substr(34, 36);
+            std::string base2_10_4 =
+                    allDataAsStrings[i].substr(24, 32) + allDataAsStrings[i].substr(32, 34);
+            int decimal1_64 = stoi(base2_10_1, 0, 2) * 64;
+            int decimal2_64 = stoi(base2_10_2, 0, 2) * 64;
+            int decimal3_64 = stoi(base2_10_3, 0, 2) * 64;
+            int decimal4_64 = stoi(base2_10_4, 0, 2) * 64;
+
+            uint8_t byte1[4];
+            pack32(decimal1_64, byte1);
+            uint8_t byte2[4];
+            pack32(decimal2_64, byte2);
+            uint8_t byte3[4];
+            pack32(decimal3_64, byte3);
+            uint8_t byte4[4];
+            pack32(decimal4_64, byte4);
+
+            int j=0;
+            //allNewBytes[j] = byte1;
+            //allNewBytes[j+1] = byte1;
+            //allNewBytes[j+2] = byte1;
+            //allNewBytes[j+3] = byte1;
+            j+=4;
+
+        }
+
+        jbyteArray byte_array = env->NewByteArray(size);
+        env->SetByteArrayRegion(byte_array, 0, size, reinterpret_cast<const jbyte*>(allNewBytes));
+        //return byte_array;
+
+
+
+
+        //__android_log_print(ANDROID_LOG_INFO, "AlphaCamera-Native", "FB = %s", fourtybits.c_str());
+        //__android_log_print(ANDRO
+        // ID_LOG_INFO, "AlphaCamera-Native", "Binary = %s", bin.c_str());
+        //if(i % 5 != 0){
+        //    __android_log_print(ANDROID_LOG_INFO, "AlphaCamera-Native", "Bin = %s", bin.c_str());
+        //    fourtybits.append("xd");
+        //} else if(i % 5 == 0){
+        //    allDataAsStrings.push_back(fourtybits);
+        //    fourtybits.clear();
+        //    std::string part = allDataAsStrings[j];
+        //    __android_log_print(ANDROID_LOG_INFO, "AlphaCamera-Native", "Binary = %s", part.c_str());
+        //    j+=1;
+        //}
+    }
+
+    __android_log_print(ANDROID_LOG_INFO, "AlphaCamera-Native", "Binary = %s", allDataAsStrings[0].c_str());
+
+    env->ReleaseByteArrayElements(array, buffer, JNI_ABORT);
+
+//    jobjectArray ret = (jobjectArray)env->NewObjectArray(allDataAsStrings.size(),env->FindClass("java/lang/String"),env->NewStringUTF(""));
+//    for(int i=0;i<allDataAsStrings.size();i++) env->SetObjectArrayElement(ret,i,env->NewStringUTF(allDataAsStrings[i].c_str()));
+//    return(ret);
+}
