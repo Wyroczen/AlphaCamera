@@ -42,8 +42,8 @@
         <item>0</item>
     </string-array>
 
-    <string-array name="pref_backRes_entries"></string-array>
-    <string-array name="pref_backRes_values"></string-array>
+    <string-array name="pref_backRes_entries" />
+    <string-array name="pref_backRes_values" />
 
     <string-array name="pref_imageFormat_entries">
         <item>JPEG</item>
@@ -78,6 +78,8 @@
         <item>VENDOR_MODE_5</item>
         <item>VENDOR_MODE_6</item>
         <item>SUPER_NIGHT</item>
+        <item>QCFA (Not rn8p)</item>
+        <item>ALGO_UP_QCFA (Not rn8p)</item>
     </string-array>
     <string-array name="pref_streamConfig_values">
         <item>0</item>
@@ -89,7 +91,7 @@
         <item>32773</item>
         <item>32774</item>
         <item>32778</item>
+        <item>32775</item>
+        <item>36865</item>
     </string-array>
-    pref_streamConfig_entries
-
 </resources>

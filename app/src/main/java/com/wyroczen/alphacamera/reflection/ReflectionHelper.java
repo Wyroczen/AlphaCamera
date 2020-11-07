@@ -7,27 +7,24 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.DngCreator;
-import android.hardware.camera2.params.BlackLevelPattern;
 import android.hardware.camera2.params.InputConfiguration;
-import android.media.ImageReader;
+import android.hardware.camera2.params.StreamConfiguration;
+import android.hardware.camera2.params.StreamConfigurationDuration;
 import android.os.Handler;
 import android.util.Log;
 import android.util.Size;
+import android.widget.Toast;
 
-import com.wyroczen.alphacamera.CameraFragment;
 import com.wyroczen.alphacamera.stock.ReflectUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.nio.ByteBuffer;
-import java.sql.Ref;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +48,9 @@ public class ReflectionHelper {
     public static CaptureRequest.Key<Integer> SANPSHOT_FLIP_MODE = null;
     public static final int VALUE_SANPSHOT_FLIP_MODE_OFF = 0;
     public static final int VALUE_SANPSHOT_FLIP_MODE_ON = 1;
+
+    //Qualcomm - Snapdragon
+    public static CaptureRequest.Key<Integer> SENSOR_MODE_KEY = null;
 
 //    public static CaptureRequest.Key<Boolean> SUPER_NIGHT_SCENE_ENABLED = null;
 //    public static CaptureRequest.Key<Integer> CONTROL_CAPTURE_HIGH_QUALITY_REPROCESS = null;
@@ -114,6 +114,12 @@ public class ReflectionHelper {
                     captureRequestKeyConstructor.newInstance("xiaomi.flip.enabled", Boolean.class);
             SANPSHOT_FLIP_MODE =
                     captureRequestKeyConstructor.newInstance("com.mediatek.control.capture.flipmode", Integer.class);
+
+            //SNAPDRAGON
+            //SENSOR_MODE_KEY =
+            //        captureRequestKeyConstructor.newInstance("org.codeaurora.qcamera3.sensor_meta_data.sensor_mode_index", Integer.class);
+
+
             //SUPER_NIGHT_SCENE_ENABLED =
             //        captureRequestKeyConstructor.newInstance("xiaomi.supernight.enabled", Boolean.class);
 //            CONTROL_CAPTURE_HIGH_QUALITY_REPROCESS =
@@ -181,13 +187,127 @@ public class ReflectionHelper {
         //String wyroczen = ((String) ReflectUtils.invokeStatic("android.os.SystemProperties", "get", new String[]{"wyroczen"}));
         //Log.i("AlphaCamera-reflection", "WYROCZEN: " + wyroczen);
 
+        String sPlatform = ((String) ReflectUtils.invokeStatic("android.os.SystemProperties", "get", new String[]{"ro.netflix.bsp_rev"}));
+        Log.i("AlphaCamera-reflection", "MTK PLATFORM: " + sPlatform);
+        ReflectUtils.invokeStatic("com.miui.internal.os.Native", "setPropertyNative", new String[]{"wyroczen","wyroczen_success"});
+        String wyroczen = ((String) ReflectUtils.invokeStatic("android.os.SystemProperties", "get", new String[]{"wyroczen"}));
+        Log.i("AlphaCamera-reflection", "WYROCZEN: " + wyroczen);
         //ignoreInputConfigurationCheck();
     }
 
+    private String streamtoString(StreamConfiguration conf){
+        return "StreamConfiguration{" +"mFormat:"+conf.getFormat()+" mSize:"+conf.getSize().toString()+"}";
+    }
+
     public void changeCharacteristics(CameraCharacteristics mCameraCharacteristics){
-        ReflectionHelper.set(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_PRE_CORRECTION_ACTIVE_ARRAY_SIZE, new Rect(0,0,9280,6944), mCameraCharacteristics);
-        ReflectionHelper.set(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE, new Rect(0,0,9280,6944), mCameraCharacteristics);
-        ReflectionHelper.set(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE, new Size(9280,6944), mCameraCharacteristics);
+        ReflectionHelper.set(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_PRE_CORRECTION_ACTIVE_ARRAY_SIZE, new Rect(0,0,4640,3472), mCameraCharacteristics);
+        ReflectionHelper.set(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE, new Rect(0,0,4640,3472), mCameraCharacteristics);
+        ReflectionHelper.set(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE, new Size(4640,3472), mCameraCharacteristics);
+
+        CameraCharacteristics.Key<StreamConfigurationDuration[]> SCALER_AVAILABLE_MIN_FRAME_DURATIONS =
+                getCameraCharacteristicsKey("android.scaler.availableMinFrameDurations",
+                        StreamConfigurationDuration[].class);
+        CameraCharacteristics.Key<StreamConfiguration[]> SCALER_AVAILABLE_STREAM_CONFIGURATIONS =
+                getCameraCharacteristicsKey("android.scaler.availableStreamConfigurations", StreamConfiguration[].class);
+
+        StreamConfiguration[] mapp = mCameraCharacteristics.get(SCALER_AVAILABLE_STREAM_CONFIGURATIONS);
+        StreamConfigurationDuration[] durmap = mCameraCharacteristics.get(SCALER_AVAILABLE_MIN_FRAME_DURATIONS);
+        for(StreamConfiguration conf : mapp){
+            Log.d("AlphaCamera-newChar","Chars Patch: " + streamtoString(conf));
+        }
+
+        int cnt2 = 0;
+        int nformat;
+        boolean patched = false;
+        for(int i =0; i<mapp.length;i++){
+            if(mapp[i].getHeight()*mapp[i].getWidth() <= 30000){
+                Log.d("AlphaCamera-newChar","Chars Patch: " + "Replacing streamconfig:"+streamtoString(mapp[i]));
+                switch (cnt2){
+                    case 0:
+                        nformat = 35;
+                        //mapp[i] = new StreamConfiguration(nformat,12032,9024,false);
+                        mapp[i] = new StreamConfiguration(nformat,9248,6936,false);
+                        //nformat = 32;
+                        //mapp[i] = new StreamConfiguration(nformat,9280,6944,false);
+                        cnt2++;
+                        break;
+                    case 1:
+                        nformat = 33;
+                        //mapp[i] = new StreamConfiguration(nformat,12032,9024,false);
+                        mapp[i] = new StreamConfiguration(nformat,9248,6936,false);
+                        //nformat = 37;
+                        //mapp[i] = new StreamConfiguration(nformat,9280,6944,false);
+                        cnt2++;
+                        //break;
+                    case 2:
+                        //nformat = 36;
+                        //mapp[i] = new StreamConfiguration(nformat,9280,6944,false);
+                        patched = true;
+                        break;
+                }
+            }
+            if(patched) {
+                patched = false;
+                cnt2 = 0;
+                break;
+            }
+        }
+        for(StreamConfiguration conf : mapp){
+            Log.d("AlphaCamera-newChar","Chars Patch after " + streamtoString(conf));
+        }
+        for(int i =0; i<durmap.length;i++){
+            if(durmap[i].getHeight()*durmap[i].getWidth() <= 30000){
+                switch (cnt2){
+                    case 0:
+                        nformat = 35;
+                        //durmap[i] = new StreamConfigurationDuration(nformat,12032,9024,176437248);
+                        durmap[i] = new StreamConfigurationDuration(nformat,9248,6936,50000000);
+                        //nformat = 32;
+                        //durmap[i] = new StreamConfigurationDuration(nformat,9280,6944,33333333);
+                        cnt2++;
+                        break;
+                    case 1:
+                        nformat = 33;
+                        //durmap[i] = new StreamConfigurationDuration(nformat,12032,9024,50000000);
+                        durmap[i] = new StreamConfigurationDuration(nformat,9248,6936,50000000);
+                        //nformat = 37;
+                        //durmap[i] = new StreamConfigurationDuration(nformat,9280,6944,33333333);
+                        cnt2++;
+                        break;
+                    case 2:
+                        //nformat = 36;
+                        //durmap[i] = new StreamConfigurationDuration(nformat,9280,6944,33333333);
+                        patched = true;
+                        break;
+                }
+            }
+            if(patched) {
+                patched = false;
+                cnt2 = 0;
+                break;
+            }
+        }
+        ReflectionHelper.set(SCALER_AVAILABLE_MIN_FRAME_DURATIONS, durmap, mCameraCharacteristics);
+        ReflectionHelper.set(SCALER_AVAILABLE_STREAM_CONFIGURATIONS, mapp, mCameraCharacteristics);
+    }
+
+    public static CameraCharacteristics.Key getCameraCharacteristicsKey(final String s, final Class clazz) {
+        try {
+
+            final Constructor constructor = CameraCharacteristics.Key.class.getDeclaredConstructors()[2];
+            constructor.setAccessible(true);
+            return (CameraCharacteristics.Key) constructor.newInstance(new Object[]{s, clazz});
+
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IllegalAccessException e2) {
+            e2.printStackTrace();
+            return null;
+        } catch (InvocationTargetException e3) {
+            e3.printStackTrace();
+            return null;
+        }
     }
 
     public static <T> void set(CameraCharacteristics.Key<T> key, T value, CameraCharacteristics mCameraCharacteristics) {

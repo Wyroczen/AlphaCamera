@@ -1,5 +1,8 @@
-package com.wyroczen.alphacamera.reflection.utils;
+package android.hardware.camera2.utils;
 
+import androidx.annotation.Keep;
+
+@Keep
 public class HashCodeHelpers {
     public static int hashCode(int... array) {
         if (array == null) {

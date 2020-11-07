@@ -7,7 +7,7 @@ public class NativeLibJNI {
         System.loadLibrary("native-lib");
     }
 
-    private native void printWelcome();
+    public native void printWelcome();
 
     public native String getWelcome();
 

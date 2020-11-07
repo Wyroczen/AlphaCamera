@@ -14,8 +14,17 @@ using std::endl;
 
 int SIGNATURE_CORRECT = 0;
 
+extern "C" {
+    int number = 5;
+}
+
+extern "C"
 void print_welcome_message() {
-    cout << "Hello from shared library!" << endl;
+    int number2 = 6;
+    __android_log_print(ANDROID_LOG_ERROR, "AlphaCamera-LiberationNative", "Message from lib: %d", number2);
+    __android_log_print(ANDROID_LOG_ERROR, "AlphaCamera-LiberationNative", "PRINT WELCOME!");
+
+    __android_log_print(ANDROID_LOG_ERROR, "AlphaCamera-Liberation", "print_welcome_message exit");
 }
 
 jobject getContext(JNIEnv *env) {
@@ -102,6 +111,7 @@ std::string jstring2string(JNIEnv *env, jstring jStr) {
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_wyroczen_alphacamera_jni_NativeLibJNI_printWelcome(JNIEnv *env, jobject thiz) {
+    __android_log_print(ANDROID_LOG_ERROR, "AlphaCamera-Liberation", "PRINT WELCOME CALLED FROM JNI");
     print_welcome_message();
 }
 

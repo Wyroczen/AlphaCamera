@@ -1,10 +1,12 @@
-package com.wyroczen.alphacamera.reflection;
+package android.hardware.camera2.params;
 
 import android.util.Size;
 
-import com.wyroczen.alphacamera.reflection.utils.HashCodeHelpers;
+import android.hardware.camera2.utils.HashCodeHelpers;
 
+import androidx.annotation.Keep;
 
+@Keep
 public class StreamConfiguration {
 
     protected int mFormat;

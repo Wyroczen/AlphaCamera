@@ -14,6 +14,8 @@ import android.preference.PreferenceFragment;
 import android.util.Log;
 import android.util.Size;
 
+import com.wyroczen.alphacamera.reflection.ReflectionHelper;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -72,6 +74,12 @@ public class SettingsFragment extends PreferenceFragment {
         CameraManager manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
         CameraCharacteristics characteristics
                 = manager.getCameraCharacteristics(mCameraId);
+
+        //This fragment is used to get new modified characteristics before using them (exactly to add new streams)
+        ReflectionHelper reflectionHelper = new ReflectionHelper();
+        reflectionHelper.changeCharacteristics(characteristics);
+        //////////////////////////////////////////////////////////////////////
+
         StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
         Size[] outputSizes = map.getOutputSizes(ImageFormat.JPEG);

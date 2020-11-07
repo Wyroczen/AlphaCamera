@@ -17,6 +17,13 @@ add_library( # Specifies the name of the library.
              # Provides a relative path to your source file(s).
              src/main/cpp/native-lib.cpp )
 
+add_library( # Specifies the name of the library.
+        liberation-lib
+        # Sets the library as a shared library.
+        SHARED
+        # Provides a relative path to your source file(s).
+        src/main/cpp/Liberation/liberation.h src/main/cpp/Liberation/Memory.h src/main/cpp/Liberation/Patch.h src/main/cpp/Liberation/Patch.cpp src/main/cpp/Liberation/Hooker.cpp)
+
 find_library(log-lib
         log )
 
@@ -26,6 +33,13 @@ find_library(log-lib
 
 target_link_libraries( # Specifies the target library.
         native-lib
+
+        # Links the target library to the log library
+        # included in the NDK.
+        ${log-lib} )
+
+target_link_libraries( # Specifies the target library.
+        liberation-lib
 
         # Links the target library to the log library
         # included in the NDK.

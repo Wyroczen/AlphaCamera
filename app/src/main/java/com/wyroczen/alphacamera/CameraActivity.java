@@ -16,10 +16,12 @@ import android.os.Bundle;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.wyroczen.alphacamera.asm.ASMHelper;
+import com.wyroczen.alphacamera.jni.HookerLibJNI;
 import com.wyroczen.alphacamera.jni.NativeLibJNI;
 import com.wyroczen.alphacamera.location.LocationService;
 import com.wyroczen.alphacamera.rawtools.PackedWordReader;
 import com.wyroczen.alphacamera.reflection.ReflectionHelper;
+import com.wyroczen.alphacamera.unsafe.UnsafeHelper;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -29,12 +31,14 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.util.Size;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -101,13 +105,27 @@ public class CameraActivity extends AppCompatActivity {
                     .commit();
         }
 
+        //Tests for loading class dynamically
+        //UnsafeHelper unsafeHelper = new UnsafeHelper(this);
+        //unsafeHelper.loadClass();
+        //unsafeHelper.loadClassFromInstalledApp("com.wyroczen.wyroczenhelper", "com.wyroczen.wyroczenhelper.WyroczenHelper");
+
         //ROOT TESTS
         //ReflectionHelper.doRootOperations();
 
 
-//        //TESTS FOR NATIVE LIB AND ASM
-//        NativeLibJNI nlj = new NativeLibJNI();
-//        Log.i(TAG, "Welcome message: " + nlj.getWelcome());
+        //TESTS FOR NATIVE LIB AND ASM
+        NativeLibJNI nlj = new NativeLibJNI();
+        Log.i(TAG, "Welcome message: " + nlj.getWelcome());
+        nlj.printWelcome();
+        HookerLibJNI hlj = new HookerLibJNI();
+        hlj.doHook();
+        Log.i(TAG, "Hook done");
+        Log.e(TAG, "Ram patching done!");
+        nlj.printWelcome();
+        Log.e(TAG, "Welcome message: " + nlj.getWelcome());
+        Log.e(TAG, "Method called!");
+
 //
 //        Signature[] sigs = new Signature[0];
 //        try {
@@ -163,6 +181,18 @@ public class CameraActivity extends AppCompatActivity {
             receiver = null;
         }
         super.onDestroy();
+    }
+
+    @Override
+    public boolean onKeyDown(int i, KeyEvent keyEvent) {
+        Log.i(TAG, " Key down: " + i);
+        if(i == 0){
+            //CameraFragment cameraFragment = (CameraFragment) this.getSupportFragmentManager().findFragmentById(R.id.container);
+            //cameraFragment.takePicture();
+            ImageButton shutterButton = findViewById(R.id.capture_button);
+            shutterButton.performClick();
+        }
+        return false;
     }
 
 

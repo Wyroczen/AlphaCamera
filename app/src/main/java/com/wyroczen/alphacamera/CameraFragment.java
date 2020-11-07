@@ -19,6 +19,7 @@ import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
+import android.hardware.HardwareBuffer;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -34,6 +35,7 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -55,6 +57,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.wyroczen.alphacamera.buttons.HardwareButtonsMapper;
 import com.wyroczen.alphacamera.metadata.ExifHelper;
 import com.wyroczen.alphacamera.rawtools.PackedWordReader;
 import com.wyroczen.alphacamera.reflection.ReflectionHelper;
@@ -101,6 +104,8 @@ public class CameraFragment extends Fragment
 
     private ReflectionHelper reflectionHelper = null;
 
+    private Boolean isRedmiNote8Pro = false;
+    private Boolean isNubiaMini5G = false;
     public static final String CAMERA_BACK_MAIN = "0";
     public static final String CAMERA_FRONT = "1";
     public static final String CAMERA_BACK_WIDE = "21";
@@ -302,8 +307,10 @@ public class CameraFragment extends Fragment
 
             //Location
             //getLocation();
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile, chosenImageFormat, mCameraCharacteristics, mCaptureResult, ((CameraActivity) getActivity()).longitude, ((CameraActivity) getActivity()).latitude));
-            reflectionHelper.changeCharacteristics(mCameraCharacteristics);
+            Image imageForProcessing = reader.acquireNextImage();
+
+            mBackgroundHandler.post(new ImageSaver(imageForProcessing, mFile, chosenImageFormat, mCameraCharacteristics, mCaptureResult, ((CameraActivity) getActivity()).longitude, ((CameraActivity) getActivity()).latitude));
+            //reflectionHelper.changeCharacteristics(mCameraCharacteristics);
             //PackedWordReader pwr = new PackedWordReader(getContext());
             //ByteBuffer byteBuffer = pwr.getByteBuffer();
             //ByteBuffer byteBuffer = pwr.doInNative();
@@ -743,8 +750,13 @@ public class CameraFragment extends Fragment
         super.onPause();
     }
 
+
     @Override
     public void onStart() {
+
+        //Check device
+        isRedmiNote8Pro = (Build.HARDWARE.equals("begonia") || Build.HARDWARE.equals("begoniain"));
+        isNubiaMini5G = (Build.HARDWARE.equals("TP1803"));
 
         //Camera shutter sound
         shutterMediaPlayer = MediaPlayer.create(getActivity(), R.raw.shutter_sound);
@@ -898,6 +910,9 @@ public class CameraFragment extends Fragment
 
                 mCameraCharacteristics = characteristics;
 
+                //Change camera characteristics params
+                reflectionHelper.changeCharacteristics(mCameraCharacteristics);
+
                 // We don't use a front facing camera in this sample.
                 //Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
                 //if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
@@ -925,9 +940,13 @@ public class CameraFragment extends Fragment
                     //        chosenImageFormat, /*maxImages*/1); //było 2
                     mImageReader = ImageReader.newInstance(chosenBackResolution.getWidth(), chosenBackResolution.getHeight(),
                             chosenImageFormat, /*maxImages*/1); //było 2
+                    //mImageReader = new ImageReader2(chosenBackResolution.getWidth(), chosenBackResolution.getHeight(),
+                    //        chosenImageFormat, /*maxImages*/1); //było 2
                 } else {
                     mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
                             chosenImageFormat, /*maxImages*/1); //było 2
+                    //mImageReader = new ImageReader2(largest.getWidth(), largest.getHeight(),
+                    //        chosenImageFormat, /*maxImages*/1); //było 2
                 }
 
                 mImageReader.setOnImageAvailableListener(
@@ -1136,11 +1155,11 @@ public class CameraFragment extends Fragment
                                 //Antibanding
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_ANTIBANDING_MODE, mAntibandingMode);
                                 //TEST DISTORTION CORRECTION
-                                if (mCameraId.equals(CAMERA_BACK_MAIN)) {
+                                if (mCameraId.equals(CAMERA_BACK_MAIN) && isRedmiNote8Pro) {
                                     mPreviewRequestBuilder.set(ReflectionHelper.NORMAL_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
-                                } else if (mCameraId.equals(CAMERA_BACK_WIDE)) {
+                                } else if (mCameraId.equals(CAMERA_BACK_WIDE) && isRedmiNote8Pro) {
                                     mPreviewRequestBuilder.set(ReflectionHelper.ULTRA_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
-                                } else if (mCameraId.equals(CAMERA_FRONT)) {
+                                } else if (mCameraId.equals(CAMERA_FRONT) && isRedmiNote8Pro) {
                                     //mPreviewRequestBuilder.set(ReflectionHelper.FRONT_MIRROR, true);
                                     //mPreviewRequestBuilder.set(ReflectionHelper.SANPSHOT_FLIP_MODE, ReflectionHelper.VALUE_SANPSHOT_FLIP_MODE_OFF);
                                 }
@@ -1351,7 +1370,7 @@ public class CameraFragment extends Fragment
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                             CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
 
-                if (mCameraId.equals(CAMERA_BACK_MAIN) && MANUAL_ISO_VALUE < 400 && mImageReader.getHeight() == 6936) {
+                if (mCameraId.equals(CAMERA_BACK_MAIN) && MANUAL_ISO_VALUE < 400 && mImageReader.getHeight() == 6936 && isRedmiNote8Pro) {
                     Log.i(TAG, "Get height: " + mImageReader.getHeight());
                     captureBuilder.set(ReflectionHelper.MTK_REMOSAIC_ENABLE_KEY, ReflectionHelper.CONTROL_REMOSAIC_HINT_ON);
                     captureBuilder.set(ReflectionHelper.XIAOMI_REMOSAIC_ENABLE_KEY, 1);
@@ -1370,13 +1389,16 @@ public class CameraFragment extends Fragment
                 //Antibanding
                 captureBuilder.set(CaptureRequest.CONTROL_AE_ANTIBANDING_MODE, mAntibandingMode);
                 //TEST MTK
-                if (mCameraId.equals(CAMERA_BACK_MAIN) && mImageReader.getHeight() == 6936) {
+                if (mCameraId.equals(CAMERA_BACK_MAIN) && (mImageReader.getHeight() == 6936 || mImageReader.getHeight() == 9024) && isRedmiNote8Pro) {
                     //force remosaic
                     captureBuilder.set(ReflectionHelper.MTK_REMOSAIC_ENABLE_KEY, ReflectionHelper.CONTROL_REMOSAIC_HINT_ON);
                     captureBuilder.set(ReflectionHelper.XIAOMI_REMOSAIC_ENABLE_KEY, 1);
                     captureBuilder.set(ReflectionHelper.NORMAL_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
                     captureBuilder.set(ReflectionHelper.DEPURPLE, Byte.valueOf("1"));
-                } else if (mCameraId.equals(CAMERA_BACK_WIDE)) {
+                    //Snapdragon
+                    //Log.i(TAG, " Snapdragon keys fired!");
+                    //captureBuilder.set(ReflectionHelper.SENSOR_MODE_KEY, Integer.valueOf(5));
+                } else if (mCameraId.equals(CAMERA_BACK_WIDE) && isRedmiNote8Pro) {
                     captureBuilder.set(ReflectionHelper.ULTRA_WIDE_LENS_DISTORTION_CORRECTION_LEVEL, Byte.valueOf("1"));
 //                    byte [] byteArray = new byte[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0,-16,63,0,0,0,0,0,0,0,0,-128,-49,60,106,44,73,
 //                            -95,63,64,91,115,-8,-88,77,-63,63,0,64,56,119,-51,127,-45,63,48,
@@ -1387,7 +1409,7 @@ public class CameraFragment extends Fragment
 //                            ,17,8,-22,34,64,94,122,114,-57,-88,-99,37,64,-41,33,22,12,27,-114,40,64,119,-111,-122,91,-113,-65,43,64,40,-120,-76,94,-64,54,47,64};
 //                    captureBuilder.set(ReflectionHelper.CONTROL_DISTORTION_FPC_DATA, byteArray);
                     captureBuilder.set(ReflectionHelper.DEPURPLE, Byte.valueOf("1"));
-                } else if (mCameraId.equals("1")) {
+                } else if (mCameraId.equals(CAMERA_FRONT) && isRedmiNote8Pro) {
                     if (mFrontMirror) {
                         captureBuilder.set(ReflectionHelper.FRONT_MIRROR, true);
                         captureBuilder.set(ReflectionHelper.SANPSHOT_FLIP_MODE, ReflectionHelper.VALUE_SANPSHOT_FLIP_MODE_ON);
